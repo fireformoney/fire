@@ -18,7 +18,6 @@ import com.hxbreak.leyou.Bean.AppInfo;
 import com.hxbreak.leyou.R;
 
 import java.util.HashMap;
-import java.util.List;
 
 /**
  * Created by HxBreak on 2017/7/17.

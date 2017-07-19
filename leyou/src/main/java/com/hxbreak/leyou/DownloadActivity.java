@@ -4,7 +4,6 @@ import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -15,7 +14,6 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -24,8 +22,6 @@ import com.hxbreak.leyou.Adapter.AppListAdapter;
 import com.hxbreak.leyou.Bean.AppListResult;
 import com.hxbreak.leyou.Data.CreateMD5;
 import com.hxbreak.leyou.Task.DownloadTask;
-
-import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -47,7 +43,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class MainActivity extends BaseActivity implements Callback, AppListAdapter.OnItemClick, DownloadTask.DownloadListener{
+public class DownloadActivity extends BaseActivity implements Callback, AppListAdapter.OnItemClick, DownloadTask.DownloadListener{
 
     private static final String APP_SECRET = "testappsecret";
     private final String applisturl = "http://package.mhacn.net/api/v2/apps/list";
@@ -69,7 +65,7 @@ public class MainActivity extends BaseActivity implements Callback, AppListAdapt
                 case 1:
                     initList(); break;
                 case 2:
-                    Toast.makeText(MainActivity.this, "列表加载失败", Toast.LENGTH_LONG).show();break;
+                    Toast.makeText(DownloadActivity.this, "列表加载失败", Toast.LENGTH_LONG).show();break;
                 case 100:
                     appListAdapter.updateItemDownloadProgess(msg.arg1, msg.arg2);break;
                 case 101:
