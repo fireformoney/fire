@@ -16,4 +16,5 @@ public class AppInfo {
     public long apk_size;
     public String apk_md5;
     public String apk_url;
+    public String icon_url;
 }

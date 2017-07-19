@@ -7,16 +7,21 @@ import android.text.Layout;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.RequestManager;
 import com.hxbreak.leyou.Bean.AppInfo;
 import com.hxbreak.leyou.R;
 
+import java.io.File;
 import java.util.HashMap;
 
 /**
@@ -27,11 +32,15 @@ public class AppListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private Context context;
     private AppInfo[] appInfos;
     private OnItemClick onItemClick;
-    private HashMap<Integer, Integer> hashMap = new HashMap<>();
-    public AppListAdapter(Context context, AppInfo[] appInfos, OnItemClick onItemClick) {
+    private HashMap<Integer, AppListAdapter.DownlaodInfo> hashMap = new HashMap<>();
+    private File[] filesDir;
+    private RequestManager requestManager;
+    public AppListAdapter(Context context, AppInfo[] appInfos, OnItemClick onItemClick, File[] files) {
         this.context = context;
         this.appInfos = appInfos;
         this.onItemClick = onItemClick;
+        this.filesDir = files;
+        this.requestManager = Glide.with(context);
     }
 
     @Override
@@ -47,16 +56,35 @@ public class AppListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         appViewHolder.appname.setText(appInfos[position].name);
         appViewHolder.download_btn.setOnClickListener(this);
         appViewHolder.download_btn.setTag(position);
-        Integer s = hashMap.get(position);
+        for (File f : filesDir){
+            if(f.getName().equals(appInfos[position].Package + ".apk")){
+                if(hashMap.get(position) == null)
+                    hashMap.put(position, new DownlaodInfo((int)f.length(), 2));
+            }
+        }
+        requestManager.load(appInfos[position].icon_url).into(appViewHolder.appImage);
+        AppListAdapter.DownlaodInfo s = hashMap.get(position);
         if(s != null){
             appViewHolder.appsize.setVisibility(View.GONE);
             appViewHolder.progressView.setVisibility(View.VISIBLE);
-            SpannableStringBuilder ssb = new SpannableStringBuilder(String.format("%dMB/%dMB", s /1024 /1024, appInfos[position].apk_size / 1024 / 1024));
-            ssb.setSpan(new ForegroundColorSpan(Color.BLUE), 0, String.valueOf(s /1024 /1024).length() + 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            SpannableStringBuilder ssb = new SpannableStringBuilder(String.format("%.2fMB/%.2fMB", s.getBuffered() /1024 /1024.0, appInfos[position].apk_size / 1024 / 1024.0));
+            ssb.setSpan(new ForegroundColorSpan(Color.BLUE), 0, String.format("%.2f", s.getBuffered() /1024 /1024.0).length() + 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             appViewHolder.downloadProg.setText(ssb);
             appViewHolder.progressBar.setMax((int)appInfos[position].apk_size);
-            appViewHolder.progressBar.setProgress(s);
-            appViewHolder.download_btn.setText("暂停");
+            appViewHolder.progressBar.setProgress(s.getBuffered());
+            switch (s.getStatus()){
+                //0 未开始下载,  1 下载中, 2 暂停下载中, 3 下载完成 4 安装完成
+                case 0:
+                    appViewHolder.download_btn.setText("下载");break;
+                case 1:
+                    appViewHolder.download_btn.setText("暂停");break;
+                case 2:
+                    appViewHolder.download_btn.setText("继续");break;
+                case 3:
+                    appViewHolder.download_btn.setText("安装");break;
+                case 4:
+                    appViewHolder.download_btn.setText("打开");break;
+            }
         }else{
             appViewHolder.download_btn.setText("下载");
             appViewHolder.appsize.setText(appInfos[position].apk_size / 1024 / 1024 + " MB");
@@ -64,8 +92,32 @@ public class AppListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             appViewHolder.progressView.setVisibility(View.GONE);
         }
     }
+    public String requestPackageName(int position){
+        return appInfos[position].Package;
+    }
     public boolean isDownloading(int id){
         return hashMap.get(id) != null;
+    }
+
+    public synchronized int getItemStatus(int id){
+        AppListAdapter.DownlaodInfo buffered;
+        if(null == (buffered = hashMap.get(id))){
+            return 0;
+        }else{
+            return buffered.getStatus();
+        }
+    }
+    public synchronized void setItemStatus(int id, int status, boolean update){
+        AppListAdapter.DownlaodInfo di = null;
+        if (null != (di = hashMap.get(id))){
+            hashMap.put(id, new DownlaodInfo(di.getBuffered(), status));
+        }else{
+            hashMap.put(id, new DownlaodInfo(0, status));
+        }
+        if (update){
+            notifyItemChanged(id);
+        }
+        Log.e("HxBreak", String.format("id:%d status:%d", id, status));
     }
     @Override
     public int getItemCount() {
@@ -75,15 +127,27 @@ public class AppListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     public void onClick(View view) {
         onItemClick.OnClick(view, (int)view.getTag());
     }
+
+    /**
+     * 更新进度条
+     * @param id
+     * @param buffered
+     */
     public void updateItemDownloadProgess(int id, int buffered){
-        hashMap.put(id, buffered);
+        DownlaodInfo source = hashMap.get(id);
+        hashMap.put(id, new DownlaodInfo(buffered, source == null ? 1 : source.getStatus()));
+        if (buffered >= appInfos[id].apk_size){
+            setItemStatus(id, 3, false);
+        }
         notifyItemChanged(id);
+        Log.e("HxBreak", String.format("id:%d status:%d", id, 1));
     }
     public class AppViewHolder extends RecyclerView.ViewHolder {
         private TextView id, appname, appsize, downloadProg;
         private Button download_btn;
         private View progressView;
         private ProgressBar progressBar;
+        private ImageView appImage;
         public AppViewHolder(View itemView) {
             super(itemView);
             id  = (TextView)itemView.findViewById(R.id.hb_item_id);
@@ -93,6 +157,33 @@ public class AppListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             downloadProg = (TextView)itemView.findViewById(R.id.hb_currentspeed);
             progressBar = (ProgressBar)itemView.findViewById(R.id.hb_download_progressBar);
             progressView = itemView.findViewById(R.id.hb_item_progress_group);
+            appImage = (ImageView) itemView.findViewById(R.id.hb_item_image);
+        }
+    }
+
+    public class DownlaodInfo{
+        private int buffered;
+        private int status;//0 未开始下载,  1 下载中, 2 暂停暂停中, 3 下载完成 4 安装完成
+
+        public DownlaodInfo(int buffered, int status) {
+            this.buffered = buffered;
+            this.status = status;
+        }
+
+        public synchronized int getBuffered() {
+            return buffered;
+        }
+
+        public synchronized void setBuffered(int buffered) {
+            this.buffered = buffered;
+        }
+
+        public synchronized int getStatus() {
+            return status;
+        }
+
+        public synchronized void setStatus(int status) {
+            this.status = status;
         }
     }
 

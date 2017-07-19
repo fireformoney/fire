@@ -1,6 +1,8 @@
 package com.hxbreak.leyou;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
@@ -23,6 +25,8 @@ import com.hxbreak.leyou.Bean.AppListResult;
 import com.hxbreak.leyou.Data.CreateMD5;
 import com.hxbreak.leyou.Task.DownloadTask;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URLEncoder;
@@ -69,6 +73,7 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
                 case 100:
                     appListAdapter.updateItemDownloadProgess(msg.arg1, msg.arg2);break;
                 case 101:
+                    Toast.makeText(DownloadActivity.this, "下载任务出错", Toast.LENGTH_LONG).show();break;
             }
         }
     };
@@ -78,7 +83,7 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
         setContentView(R.layout.activity_main);
         okHttpClient = new OkHttpClient();
 
-        toolbar = (Toolbar) findViewById(R.id.hxbreak_toolbar);
+        toolbar = (Toolbar) findViewById(R.id.hb_toolbar);
         recyclerView = (RecyclerView)findViewById(R.id.hb_app_recylerview);
         progressBar = (ProgressBar)findViewById(R.id.hx_progressBar);
         initToolbar();
@@ -90,13 +95,16 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
 
+    /**
+     * 展示列表内容
+     */
     private void initList(){
         progressBar.setVisibility(View.GONE);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setOrientation(OrientationHelper.VERTICAL);
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
-        appListAdapter = new AppListAdapter(this, appListResult.content.list, this);
+        appListAdapter = new AppListAdapter(this, appListResult.content.list, this, new File(getFilesDir(), "/appcache").listFiles());
         recyclerView.setAdapter(appListAdapter);
     }
 
@@ -110,11 +118,14 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * 下载app列表
+     */
     private void dowloadAppList(){
         HashMap<String, String> hashMap = new HashMap<>();
         hashMap.put("from_client", "server");
-        hashMap.put("channel_id", "77777a");
-        hashMap.put("app_id", "b77777");
+        hashMap.put("channel_id", "20020a");
+        hashMap.put("app_id", "b1020a");
         hashMap.put("pn", "1");
         hashMap.put("rn", "10");
         hashMap.put("timestamp", String.valueOf((int)(System.currentTimeMillis() / 1000)));
@@ -173,11 +184,34 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
     public void OnClick(View view, int position) {
         switch (view.getId()){
             case R.id.hb_btn_download:
-//                requestDownloadApk(appListResult.content.list[position].apk_url, appListResult.content.list[position].Package,appListResult.content.list[position].apk_size);
-                startDownloadPackage(appListResult.content.list[position].apk_url, position);
+                switch (appListAdapter.getItemStatus(position)){
+                    case 0:
+                        startDownloadPackage(appListResult.content.list[position].apk_url, position);
+                        appListAdapter.setItemStatus(position, 1, true);
+                        break;
+                    case 1:
+                        hashMap.get(position).requestShutdown();
+                        appListAdapter.setItemStatus(position, 2, true);
+                        break;
+                    case 2:
+                        startDownloadPackage(appListResult.content.list[position].apk_url, position);
+                        appListAdapter.setItemStatus(position, 1, true);
+                        break;
+                    case 3:
+                        requestInstallPackage(String.format("/appcache/%s.apk", appListAdapter.requestPackageName(position)));break;
+                    case 4:
+                        requestLaunchPackage(appListAdapter.requestPackageName(position));break;
+                }
                 break;
         }
     }
+
+    /**
+     * 发送请求，是否允许下载app
+     * @param url
+     * @param packagename
+     * @param apkSize
+     */
     public void requestDownloadApk(String url, String packagename, long apkSize){
         Toast.makeText(this, url + " " + apkSize, Toast.LENGTH_LONG).show();
         Gson gson = new Gson();
@@ -278,33 +312,55 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
             public void onResponse(Call call, Response response) throws IOException {
                 if(response.code() == 200){
                     String str = response.body().string();
-                    Log.e("HxBreak", str);
+                    Log.e("HxBreak", str != null ? str : "NullPointerString");
                 }
             }
         });
 
     }
+
+    /**
+     * 开始下载应用包
+     * @param url
+     * @param position
+     */
     public void startDownloadPackage(String url, int position){
-        if (appListAdapter.isDownloading(position) == false) {
-            try {
-                DownloadTask downloadTask = new DownloadTask(this, url, position, this, this.openFileOutput("app.apk", Context.MODE_WORLD_READABLE));
-                hashMap.put(position, downloadTask);
-                downloadTask.requestDownload();
-                Message msg = new Message();
-                msg.what = 100;
-                msg.arg1 = position;
-                msg.arg2 = 0;
-                handler.sendMessage(msg);
-                Toast.makeText(this, "下载任务即将开始", Toast.LENGTH_LONG).show();
-            } catch (Exception e) {
-                Toast.makeText(this, "创建下载任务时发生意外", Toast.LENGTH_LONG).show();
+        try {
+            File file = new File(this.getFilesDir(), "/appcache");
+            if (!file.exists()){
+                file.mkdir();
             }
-        }else{
-            //暂停代码
-            hashMap.get(position).requestShutdown();
+            File targetFile = new File(file, String.format("/%s.apk", appListAdapter.requestPackageName(position)));
+            FileOutputStream fos = new FileOutputStream(targetFile, true);
+            DownloadTask downloadTask = new DownloadTask(this,
+                    url, position, (int)targetFile.length(), this, fos);
+            hashMap.put(position, downloadTask);
+            downloadTask.requestDownload();
+            Message msg = new Message();
+            msg.what = 100;
+            msg.arg1 = position;
+            msg.arg2 = 0;
+            handler.sendMessage(msg);
+            Toast.makeText(this, "下载任务即将开始", Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Toast.makeText(this, "创建下载任务时发生意外 " + e.toString(), Toast.LENGTH_LONG).show();
         }
     }
-
+    public void requestLaunchPackage(String IPackage){
+        return ;
+    }
+    public void requestInstallPackage(String path){
+        String DataType = "application/vnd.android.package-archive";
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_VIEW);
+        intent.setDataAndType(Uri.fromFile(new File(getFilesDir(), path)), DataType);
+        startActivity(intent);
+    }
+    /**
+     * 下载进度更新
+     * @param buffered
+     * @param id
+     */
     @Override
     public void onUpdate(int buffered, int id) {
         Message msg = new Message();
