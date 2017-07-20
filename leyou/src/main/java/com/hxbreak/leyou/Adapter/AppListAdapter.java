@@ -81,12 +81,12 @@ public class AppListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             }
         }
         requestManager.load(appInfos[position].icon_url).into(appViewHolder.appImage);
-        AppListAdapter.DownlaodInfo s = hashMap.get(position);
         for (String pStr : list){
             if(pStr.equalsIgnoreCase(appInfos[position].Package)){
                 setItemStatus(position, 4, false);
             }
         }
+        AppListAdapter.DownlaodInfo s = hashMap.get(position);
         if(s != null){
             appViewHolder.appsize.setVisibility(View.GONE);
             appViewHolder.progressView.setVisibility(View.VISIBLE);

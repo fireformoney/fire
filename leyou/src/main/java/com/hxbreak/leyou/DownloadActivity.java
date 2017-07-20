@@ -131,7 +131,7 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
 
     @Override
     protected void onDestroy() {
-        unregisterReceiver(broadcastReceiver);
+//        unregisterReceiver(broadcastReceiver);
         super.onDestroy();
     }
 
@@ -144,7 +144,7 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
         linearLayoutManager.setOrientation(OrientationHelper.VERTICAL);
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
-        appListAdapter = new AppListAdapter(this, appListResult.content.list, this, new File(getFilesDir(), "/appcache").listFiles(), getInstalledAppList());
+        appListAdapter = new AppListAdapter(this, appListResult.content.list, this, new File(getFilesDir().toString()).listFiles(), getInstalledAppList());
         recyclerView.setAdapter(appListAdapter);
     }
 
@@ -238,7 +238,7 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
                         appListAdapter.setItemStatus(position, 1, true);
                         break;
                     case 3:
-                        requestInstallPackage(String.format("/appcache/%s.apk", appListAdapter.requestPackageName(position)));break;
+                        requestInstallPackage(String.format("/%s.apk", appListAdapter.requestPackageName(position)));break;
                     case 4:
                         requestLaunchPackage(appListAdapter.requestPackageName(position));break;
                 }
@@ -393,7 +393,8 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
             if (!file.exists()){
                 file.mkdir();
             }
-            File targetFile = new File(file, String.format("/%s.apk", appListAdapter.requestPackageName(position)));
+//            File targetFile = new File(file, String.format("/%s.apk", appListAdapter.requestPackageName(position)));
+            File targetFile = new File(this.getFilesDir(), String.format("/%s.apk", appListAdapter.requestPackageName(position)));
             FileOutputStream fos = new FileOutputStream(targetFile, true);
             DownloadTask downloadTask = new DownloadTask(this,
                     url, position, (int)targetFile.length(), this, fos);
@@ -422,7 +423,15 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
         String DataType = "application/vnd.android.package-archive";
         Intent intent = new Intent();
         intent.setAction(Intent.ACTION_VIEW);
-        intent.setDataAndType(Uri.fromFile(new File(getFilesDir(), path)), DataType);
+        File file = new File(getFilesDir(), path);
+        try{
+            Runtime.getRuntime().exec("chmod 777 " + file.getAbsolutePath());
+//            Runtime.getRuntime().exec("chmod 777 " + new File(getFilesDir(), "/appcache").getAbsolutePath());
+        }catch (Exception e){
+            Log.e("HxBreak", "chmod failed with error:" + e.toString());
+        }
+        intent.setDataAndType(Uri.fromFile(file.getAbsoluteFile()), DataType);
+        Log.e("HxBreak", file.getAbsoluteFile().toString());
         startActivity(intent);
     }
     /**
@@ -495,6 +504,7 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
         @Override
         public void onReceive(Context context, Intent intent) {
             Message msg = new Message();
+            Log.e("HxBreak", "package active");
             if(intent.getAction().equals(Intent.ACTION_PACKAGE_ADDED)){
                 Bundle bundle = new Bundle();
                 bundle.putString("package", intent.getDataString());
