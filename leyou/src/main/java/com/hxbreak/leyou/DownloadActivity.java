@@ -36,6 +36,7 @@ import com.hxbreak.leyou.Adapter.AppListAdapter;
 import com.hxbreak.leyou.Bean.AppListResult;
 import com.hxbreak.leyou.Data.CreateMD5;
 import com.hxbreak.leyou.Data._UUID;
+import com.hxbreak.leyou.Provider.MyFileProvider;
 import com.hxbreak.leyou.Task.DownloadTask;
 
 import java.io.File;
@@ -67,6 +68,9 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
     private final String appdownloadreport = "http://package.mhacn.net/api/delay/report/download/start";
     private final String CHANNEL_ID = "20020a";
     private final String APP_ID = "b1020a";
+    private final String FileStorePath = "/appcache";
+    private final String TAG = "HxBreak";
+    private final String FILEPROVIDER = "com.hxbreak.leyou.fileprovider";
 
     private Toolbar toolbar;
     private RecyclerView recyclerView;
@@ -131,7 +135,7 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
 
     @Override
     protected void onDestroy() {
-//        unregisterReceiver(broadcastReceiver);
+        unregisterReceiver(broadcastReceiver);
         super.onDestroy();
     }
 
@@ -144,7 +148,7 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
         linearLayoutManager.setOrientation(OrientationHelper.VERTICAL);
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
-        appListAdapter = new AppListAdapter(this, appListResult.content.list, this, new File(getFilesDir().toString()).listFiles(), getInstalledAppList());
+        appListAdapter = new AppListAdapter(this, appListResult.content.list, this, new File(getFilesDir(), FileStorePath).listFiles(), getInstalledAppList());
         recyclerView.setAdapter(appListAdapter);
     }
 
@@ -389,12 +393,12 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
      */
     public void startDownloadPackage(String url, int position){
         try {
-            File file = new File(this.getFilesDir(), "/appcache");
+            File file = new File(this.getFilesDir(), FileStorePath);
             if (!file.exists()){
                 file.mkdir();
             }
 //            File targetFile = new File(file, String.format("/%s.apk", appListAdapter.requestPackageName(position)));
-            File targetFile = new File(this.getFilesDir(), String.format("/%s.apk", appListAdapter.requestPackageName(position)));
+            File targetFile = new File(this.getFilesDir(), String.format("%s/%s.apk",FileStorePath, appListAdapter.requestPackageName(position)));
             FileOutputStream fos = new FileOutputStream(targetFile, true);
             DownloadTask downloadTask = new DownloadTask(this,
                     url, position, (int)targetFile.length(), this, fos);
@@ -419,20 +423,47 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
             return false;
         }
     }
+
+    /**
+     * 兼容Android 7.0及以上版本
+     * @param path
+     */
     public void requestInstallPackage(String path){
+        boolean passed = false;
+        File file = new File(getFilesDir(), FileStorePath + path);
         String DataType = "application/vnd.android.package-archive";
-        Intent intent = new Intent();
-        intent.setAction(Intent.ACTION_VIEW);
-        File file = new File(getFilesDir(), path);
+        Log.e("HxBreak", String.format("file:%s", String.valueOf(file.exists())));
         try{
-            Runtime.getRuntime().exec("chmod 777 " + file.getAbsolutePath());
-//            Runtime.getRuntime().exec("chmod 777 " + new File(getFilesDir(), "/appcache").getAbsolutePath());
+            Intent intent = new Intent();
+            intent.setAction(Intent.ACTION_VIEW);
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            MyFileProvider myFileProvider = new MyFileProvider();
+            intent.setDataAndType(myFileProvider.getUriForFile(this, FILEPROVIDER, file), DataType);
+            Log.e(TAG, String.format("Intent Test: %s", intent.toString()));
+            startActivity(intent);
+            passed = true;
         }catch (Exception e){
-            Log.e("HxBreak", "chmod failed with error:" + e.toString());
+            Log.e(TAG, e.toString());
         }
-        intent.setDataAndType(Uri.fromFile(file.getAbsoluteFile()), DataType);
-        Log.e("HxBreak", file.getAbsoluteFile().toString());
-        startActivity(intent);
+        if (!passed){
+            try {
+                Intent intent = new Intent();
+                Runtime.getRuntime().exec("chmod 777 " + file.getAbsolutePath());
+                Runtime.getRuntime().exec("chmod 777 " + file.getParent());
+                intent.setAction(Intent.ACTION_VIEW);
+                intent.setDataAndType(Uri.fromFile(file), DataType);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                Log.e(TAG, String.format("Intent Test: %s", intent.toString()));
+                startActivity(intent);
+                passed = true;
+            }catch (Exception e){
+                Log.e(TAG, e.toString());
+            }
+        }
+        if(!passed){
+            Toast.makeText(this, "安装程序无法正常启动", Toast.LENGTH_SHORT).show();
+        }
     }
     /**
      * 下载进度更新
