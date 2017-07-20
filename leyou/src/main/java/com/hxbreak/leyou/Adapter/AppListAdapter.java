@@ -65,26 +65,28 @@ public class AppListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         appViewHolder.appname.setText(appInfos[position].name);
         appViewHolder.download_btn.setOnClickListener(this);
         appViewHolder.download_btn.setTag(position);
-        for (File f : filesDir){
-            if(f != null && f.exists()){
-                if(f.getName().equals(appInfos[position].Package + ".apk")){
-                    if(hashMap.get(position) == null){
-                        if(f.length() >= appInfos[position].apk_size){
-                            hashMap.put(position, new DownlaodInfo((int) f.length(), 3));
-                        }else {
-                            hashMap.put(position, new DownlaodInfo((int) f.length(), 2));
+        if(this.filesDir != null){
+            for (File f : filesDir){
+                if(f != null && f.exists()){
+                    if(f.getName().equals(appInfos[position].Package + ".apk")){
+                        if(hashMap.get(position) == null){
+                            if(f.length() >= appInfos[position].apk_size){
+                                hashMap.put(position, new DownlaodInfo((int) f.length(), 3));
+                            }else {
+                                hashMap.put(position, new DownlaodInfo((int) f.length(), 2));
+                            }
                         }
                     }
                 }
             }
         }
         requestManager.load(appInfos[position].icon_url).into(appViewHolder.appImage);
-        AppListAdapter.DownlaodInfo s = hashMap.get(position);
         for (String pStr : list){
             if(pStr.equalsIgnoreCase(appInfos[position].Package)){
                 setItemStatus(position, 4, false);
             }
         }
+        AppListAdapter.DownlaodInfo s = hashMap.get(position);
         if(s != null){
             appViewHolder.appsize.setVisibility(View.GONE);
             appViewHolder.progressView.setVisibility(View.VISIBLE);
