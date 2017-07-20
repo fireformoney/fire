@@ -382,7 +382,6 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
         });
 
     }
-
     /**
      * 开始下载应用包
      * @param url
