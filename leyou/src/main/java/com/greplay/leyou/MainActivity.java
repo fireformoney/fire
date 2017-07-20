@@ -14,7 +14,6 @@ import com.hxbreak.leyou.DownloadActivity;
 import com.hxbreak.leyou.R;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,10 +34,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Button btnAppin = (Button)findViewById(R.id.app_in);
         btnAppin.setOnClickListener(this);
 
-        Button btnGamein = (Button)findViewById(R.id.app_in);
+        Button btnGamein = (Button)findViewById(R.id.game_in);
+        btnGamein.setOnClickListener(this);
 
-        Button btnClassicin = (Button)findViewById(R.id.app_in);
-
+        Button btnClassicin = (Button)findViewById(R.id.classic_in);
+        btnClassicin.setOnClickListener(this);
         ((TextView)findViewById(R.id.hb_title)).setText("乐悠众包会员版");
     }
 
@@ -55,13 +55,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.app_in:
-                Intent intent = new Intent(this, DownloadActivity.class);
-                startActivity(intent);
+                Intent intentApp = new Intent(this, DownloadActivity.class);
+                startActivity(intentApp);
                 break;
-//            case R.id.app_in:
-//                break;
-//            case R.id.app_in:
-//                break;
+            case R.id.game_in:
+                Intent intentGame = new Intent(this, DownloadActivity.class);
+                startActivity(intentGame);
+                break;
+            case R.id.classic_in:
+                Intent intentWebClassic = new Intent(this, ClassicWebActivity.class);
+                startActivity(intentWebClassic);
+                break;
         }
 
     }

@@ -76,7 +76,7 @@
             android:layout_centerVertical="true"
             android:id="@+id/imageappp"
             android:layout_marginLeft="8dp"
-            android:src="@mipmap/ic_launcher_round" />
+            android:src="@drawable/soft" />
         <Button
             android:layout_width="62dp"
             android:layout_height="36dp"
@@ -106,6 +106,7 @@
                 android:textColor="@color/_555555"
                 android:textSize="16dp"
                 android:paddingBottom="4dp"
+                android:textStyle="bold"
                 android:text="应用试玩"
                 />
             <TextView
@@ -134,7 +135,7 @@
             android:layout_centerVertical="true"
             android:id="@+id/imagegame"
             android:layout_marginLeft="8dp"
-            android:src="@mipmap/ic_launcher_round" />
+            android:src="@drawable/game" />
         <Button
             android:layout_width="62dp"
             android:layout_height="36dp"
@@ -164,6 +165,7 @@
                 android:textColor="@color/_555555"
                 android:textSize="16dp"
                 android:paddingBottom="4dp"
+                android:textStyle="bold"
                 android:text="游戏试玩"
                 />
             <TextView
@@ -192,7 +194,7 @@
             android:layout_centerVertical="true"
             android:id="@+id/imageclassic"
             android:layout_marginLeft="8dp"
-            android:src="@mipmap/ic_launcher_round" />
+            android:src="@drawable/tuij" />
         <Button
             android:layout_width="62dp"
             android:layout_height="36dp"
@@ -222,6 +224,7 @@
                 android:textColor="@color/_555555"
                 android:textSize="16dp"
                 android:paddingBottom="4dp"
+                android:textStyle="bold"
                 android:text="更多精彩"
                 />
             <TextView
