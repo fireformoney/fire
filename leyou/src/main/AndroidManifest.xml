@@ -22,6 +22,10 @@
         <activity android:name="com.greplay.leyou.ContactActivity" android:label="乐悠众包会员版"
             android:screenOrientation="portrait">
         </activity>
+
+        <activity android:name="com.greplay.leyou.ClassicWebActivity" android:label=""
+            android:screenOrientation="portrait">
+        </activity>
         <activity android:name="com.greplay.leyou.MainActivity"
             android:screenOrientation="portrait">
             <intent-filter>
