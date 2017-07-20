@@ -63,7 +63,7 @@
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
         android:layout_marginTop="12dp"
-        android:background="@color/colorPrimaryDark"
+        android:background="#EEEEEE"
         android:orientation="horizontal">
 
         <ImageView
@@ -81,6 +81,7 @@
             android:layout_alignParentRight="true"
             android:layout_marginRight="8dp"
             android:text="进入"
+            android:textColor="#FFFFFF"
             android:id="@+id/app_in"
             android:layout_weight="0" />
         <LinearLayout

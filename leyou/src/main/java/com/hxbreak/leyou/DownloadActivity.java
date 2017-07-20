@@ -1,17 +1,29 @@
 package com.hxbreak.leyou;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageInfo;
+import android.graphics.Point;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Bundle;
+import android.provider.Contacts;
+import android.provider.Settings;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.telephony.TelephonyManager;
+import android.telephony.gsm.GsmCellLocation;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,6 +35,7 @@ import com.google.gson.annotations.SerializedName;
 import com.hxbreak.leyou.Adapter.AppListAdapter;
 import com.hxbreak.leyou.Bean.AppListResult;
 import com.hxbreak.leyou.Data.CreateMD5;
+import com.hxbreak.leyou.Data._UUID;
 import com.hxbreak.leyou.Task.DownloadTask;
 
 import java.io.File;
@@ -52,6 +65,8 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
     private static final String APP_SECRET = "testappsecret";
     private final String applisturl = "http://package.mhacn.net/api/v2/apps/list";
     private final String appdownloadreport = "http://package.mhacn.net/api/delay/report/download/start";
+    private final String CHANNEL_ID = "20020a";
+    private final String APP_ID = "b1020a";
 
     private Toolbar toolbar;
     private RecyclerView recyclerView;
@@ -59,6 +74,7 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
     private OkHttpClient okHttpClient;
     private AppListResult appListResult;
     private AppListAdapter appListAdapter;
+    private BroadcastReceiver broadcastReceiver;
 
     private HashMap<Integer, DownloadTask> hashMap = new HashMap<>();
 
@@ -74,6 +90,10 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
                     appListAdapter.updateItemDownloadProgess(msg.arg1, msg.arg2);break;
                 case 101:
                     Toast.makeText(DownloadActivity.this, "下载任务出错", Toast.LENGTH_LONG).show();break;
+                case 200:
+                    appListAdapter.listAdd(msg.getData().getString("package", ""));break;
+                case 201:
+                    appListAdapter.listRemove(msg.getData().getString("package", ""));break;
             }
         }
     };
@@ -88,11 +108,31 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
         progressBar = (ProgressBar)findViewById(R.id.hx_progressBar);
         initToolbar();
         dowloadAppList();
+
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
+        intentFilter.addAction(Intent.ACTION_PACKAGE_REMOVED);
+        intentFilter.addDataScheme("package");
+        broadcastReceiver = new PackageListener(handler);
+        registerReceiver(broadcastReceiver, intentFilter);
     }
     private void initToolbar(){
         setSupportActionBar(toolbar);
         toolbar.setTitle("游戏试玩");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    }
+    public List<String> getInstalledAppList(){
+        List<String> list = new ArrayList<>();
+        for (PackageInfo pinfo : getPackageManager().getInstalledPackages(0)){
+            list.add(pinfo.packageName);
+        }
+        return list;
+    }
+
+    @Override
+    protected void onDestroy() {
+        unregisterReceiver(broadcastReceiver);
+        super.onDestroy();
     }
 
     /**
@@ -104,7 +144,7 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
         linearLayoutManager.setOrientation(OrientationHelper.VERTICAL);
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
-        appListAdapter = new AppListAdapter(this, appListResult.content.list, this, new File(getFilesDir(), "/appcache").listFiles());
+        appListAdapter = new AppListAdapter(this, appListResult.content.list, this, new File(getFilesDir(), "/appcache").listFiles(), getInstalledAppList());
         recyclerView.setAdapter(appListAdapter);
     }
 
@@ -124,8 +164,8 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
     private void dowloadAppList(){
         HashMap<String, String> hashMap = new HashMap<>();
         hashMap.put("from_client", "server");
-        hashMap.put("channel_id", "20020a");
-        hashMap.put("app_id", "b1020a");
+        hashMap.put("channel_id", CHANNEL_ID);
+        hashMap.put("app_id", APP_ID);
         hashMap.put("pn", "1");
         hashMap.put("rn", "10");
         hashMap.put("timestamp", String.valueOf((int)(System.currentTimeMillis() / 1000)));
@@ -216,29 +256,53 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
         Toast.makeText(this, url + " " + apkSize, Toast.LENGTH_LONG).show();
         Gson gson = new Gson();
         String reportData = gson.toJson(new pack(packagename)).toLowerCase();
+        TelephonyManager tm = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
+        String none = "0000000000000000";
+        String imei = none, androidid = none, imsi = none, mcc = "", mnc = "", la = "", ci = "";
+
+        androidid = Settings.Secure.getString(getContentResolver(), Settings.System.ANDROID_ID);
+        if(tm != null){
+            imei = tm.getDeviceId();
+            imsi = tm.getSubscriberId();
+            mcc = tm.getNetworkOperator().substring(0, 3);
+            mnc = tm.getNetworkOperator().substring(3);
+            GsmCellLocation cellLocation = (GsmCellLocation)tm.getCellLocation();
+            la = String.valueOf(cellLocation.getLac());
+            ci = String.valueOf(cellLocation.getCid());
+        }
+        Point pt = new Point();
+        getWindowManager().getDefaultDisplay().getRealSize(pt);
+        String macAddress = "", ip = "0.0.0.0";
+        WifiManager wifiMgr = (WifiManager)getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        WifiInfo info = (null == wifiMgr ? null : wifiMgr.getConnectionInfo());
+        if (null != info) {
+            macAddress = info.getMacAddress();
+            ip = Integer.toString(info.getIpAddress());
+        }
+
         //get 方式参数传入
         HttpUrl.Builder httpUrlBuilder = HttpUrl.parse(appdownloadreport).newBuilder();
         HashMap<String, String> hashMap = new HashMap<>();
-        hashMap.put("cuid", "FCF35BCF63524AFD1DA6B912D9B911B0");
+        hashMap.put("cuid", new _UUID(this).remix(imei, androidid).toUpperCase());
         hashMap.put("ovr", Build.VERSION.SDK);
         hashMap.put("os_level", String.valueOf(Build.VERSION.SDK_INT));
-        hashMap.put("device", "lg_nexus5");
-        hashMap.put("channel_id", "77777a");
-        hashMap.put("app_id", "b77777");
+        hashMap.put("device", Build.MODEL);
+        hashMap.put("channel_id", CHANNEL_ID);
+        hashMap.put("app_id", APP_ID);
         hashMap.put("svr", "4640014");
-        hashMap.put("net_type", "2");
-        hashMap.put("resolution", "1080_1920");
-        hashMap.put("info_ma", "54:14:73:7f:d3:88");
-        hashMap.put("info_ms", "460031414182320");
-        hashMap.put("client_id", "99000645086106");
-        hashMap.put("dpi", "480");
-        hashMap.put("client_ip", "114.23.89.121");
-        hashMap.put("mcc", "460");
-        hashMap.put("mno", "SID");
-        hashMap.put("info_la", "4527");
-        hashMap.put("info_ci", "28883");
-        hashMap.put("os_id", "a0178a081961900");
-        hashMap.put("bssid", "58:20:B1:66:1B:B0");
+        hashMap.put("net_type", String.valueOf(getNetype(this)));
+        hashMap.put("resolution", String.format("%s_%s", pt.x, pt.y));
+        hashMap.put("info_ma", macAddress);
+        hashMap.put("info_ms", imsi);
+        hashMap.put("client_id", imei);
+        hashMap.put("dpi", String.valueOf(getResources().getDisplayMetrics().densityDpi));
+        hashMap.put("client_ip", ip);
+        hashMap.put("mcc", mcc);
+        hashMap.put("mno", mnc);
+        hashMap.put("info_la", la);
+        hashMap.put("info_ci", ci);
+        hashMap.put("os_id", androidid);
+        hashMap.put("bssid", macAddress);
         hashMap.put("nonce", String.valueOf((int)(System.currentTimeMillis() / 1000)));
         hashMap.put("pkg", "com.huanju.sdk");
         hashMap.put("reportData", URLEncoder.encode(reportData));
@@ -387,6 +451,58 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
         public data(String aPackage, String sign) {
             Package = aPackage;
             this.sign = sign;
+        }
+    }
+    public static int getNetype(Context context)
+    {
+        int netType = -1;
+        ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        if(networkInfo==null)
+        {
+            return netType;
+        }
+        int nType = networkInfo.getType();
+        if(nType==ConnectivityManager.TYPE_MOBILE)
+        {
+            if(networkInfo.getExtraInfo().toLowerCase().equals("cmnet"))
+            {
+                netType = 3;
+            }
+            else
+            {
+                netType = 2;
+            }
+        }
+        else if(nType==ConnectivityManager.TYPE_WIFI)
+        {
+            netType = 1;
+        }
+        return netType;
+    }
+    public class PackageListener extends BroadcastReceiver
+    {
+        private Handler handler;
+
+        public PackageListener(Handler handler) {
+            this.handler = handler;
+        }
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Message msg = new Message();
+            if(intent.getAction().equals(Intent.ACTION_PACKAGE_ADDED)){
+                Bundle bundle = new Bundle();
+                bundle.putString("package", intent.getDataString());
+                msg.what = 200;
+                msg.setData(bundle);
+                handler.sendMessage(msg);
+            }else if(intent.getAction().equals(Intent.ACTION_PACKAGE_REMOVED)){
+                Bundle bundle = new Bundle();
+                bundle.putString("package", intent.getDataString());
+                msg.what = 201;
+                msg.setData(bundle);
+                handler.sendMessage(msg);
+            }
         }
     }
 }
