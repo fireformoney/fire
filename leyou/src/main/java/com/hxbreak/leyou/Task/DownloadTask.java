@@ -1,6 +1,8 @@
 package com.hxbreak.leyou.Task;
 
 import android.content.Context;
+import android.os.SystemClock;
+import android.util.Log;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -24,6 +26,8 @@ public class DownloadTask implements Callback {
     private int continueDownload = 0;
     private DownloadListener downloadListener;
     private FileOutputStream fos;
+
+    private boolean shutdown = false;
 
     private Call call;
 
@@ -68,23 +72,26 @@ public class DownloadTask implements Callback {
             byte[] bt = new byte[51200];
             int size = 0, current = 0;
             if(contentRange.equals("")){
-                while(-1 != (size = bis.read(bt, 0, bt.length))){
+                while(!shutdown && (-1 != (size = bis.read(bt, 0, bt.length)))){
+                    Log.e("HxBreak", String.format("ThreadID:%ld shutdown: %d", Thread.currentThread().getId(), shutdown));
                     bos.write(bt, 0, size);
                     current += size;
+                    SystemClock.sleep(1000);
                     downloadListener.onUpdate(current, downloadId);
                 }
             }else{
-                int base = Integer.parseInt(contentRange.substring(6));
-                while(-1 != (size = bis.read(bt, 0, bt.length))){
+                int base = Integer.parseInt(contentRange.substring(6, contentRange.indexOf('-')));
+                while(!shutdown && ( -1 != (size = bis.read(bt, 0, bt.length)))){
+                    Log.e("HxBreak", String.format("ThreadID:%d shutdown: %s", Thread.currentThread().getId(), String.valueOf(shutdown)));
                     bos.write(bt, 0, size);
                     if(current == 0) {
                         current += base;
                     }
+                    SystemClock.sleep(1000);
                     current += size;
                     downloadListener.onUpdate(current, downloadId);
                 }
             }
-            downloadListener.onUpdate(current, 101);
             bos.close();
             bis.close();
         }else{
@@ -93,6 +100,7 @@ public class DownloadTask implements Callback {
     }
     public void requestShutdown(){
         call.cancel();
+        shutdown = true;
     }
     public interface DownloadListener{
         public void onUpdate(int buffered, int id);

@@ -3,7 +3,7 @@
     package="com.hxbreak.leyou">
 
     <uses-permission android:name="android.permission.INTERNET" />
-
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -11,14 +11,13 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".DownloadActivity">
+        <activity android:name=".DownloadActivity" android:label="应用试玩">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.greplay.leyou.ContactActivity" />
+        <activity android:name="com.greplay.leyou.ContactActivity" android:label="乐悠众包会员版" />
         <activity android:name="com.greplay.leyou.MainActivity"></activity>
     </application>
 
