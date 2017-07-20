@@ -23,6 +23,7 @@ import com.hxbreak.leyou.R;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by HxBreak on 2017/7/17.
@@ -35,12 +36,20 @@ public class AppListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private HashMap<Integer, AppListAdapter.DownlaodInfo> hashMap = new HashMap<>();
     private File[] filesDir;
     private RequestManager requestManager;
-    public AppListAdapter(Context context, AppInfo[] appInfos, OnItemClick onItemClick, File[] files) {
+    private List<String> list;
+    public AppListAdapter(Context context, AppInfo[] appInfos, OnItemClick onItemClick, File[] files, List<String> list) {
         this.context = context;
         this.appInfos = appInfos;
         this.onItemClick = onItemClick;
         this.filesDir = files;
         this.requestManager = Glide.with(context);
+        this.list = list;
+    }
+    public void listRemove(String str){
+        this.list.remove(str);
+    }
+    public void listAdd(String str){
+        this.list.add(str);
     }
 
     @Override
@@ -57,13 +66,25 @@ public class AppListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         appViewHolder.download_btn.setOnClickListener(this);
         appViewHolder.download_btn.setTag(position);
         for (File f : filesDir){
-            if(f.getName().equals(appInfos[position].Package + ".apk")){
-                if(hashMap.get(position) == null)
-                    hashMap.put(position, new DownlaodInfo((int)f.length(), 2));
+            if(f != null && f.exists()){
+                if(f.getName().equals(appInfos[position].Package + ".apk")){
+                    if(hashMap.get(position) == null){
+                        if(f.length() >= appInfos[position].apk_size){
+                            hashMap.put(position, new DownlaodInfo((int) f.length(), 3));
+                        }else {
+                            hashMap.put(position, new DownlaodInfo((int) f.length(), 2));
+                        }
+                    }
+                }
             }
         }
         requestManager.load(appInfos[position].icon_url).into(appViewHolder.appImage);
         AppListAdapter.DownlaodInfo s = hashMap.get(position);
+        for (String pStr : list){
+            if(pStr.equalsIgnoreCase(appInfos[position].Package)){
+                setItemStatus(position, 4, false);
+            }
+        }
         if(s != null){
             appViewHolder.appsize.setVisibility(View.GONE);
             appViewHolder.progressView.setVisibility(View.VISIBLE);
