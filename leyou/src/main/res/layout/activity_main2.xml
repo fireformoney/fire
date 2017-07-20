@@ -11,7 +11,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:background="#EEEEEE">
+        android:background="@color/_fafafa">
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -19,6 +19,7 @@
             android:layout_alignParentLeft="true"
             android:layout_centerVertical="true"
             android:layout_marginLeft="10dp"
+            android:textColor="@color/_999999"
             android:text="（会员)" />
         <TextView
             android:layout_width="wrap_content"
@@ -26,6 +27,7 @@
             android:layout_weight="1"
             android:layout_toRightOf="@id/user_tip"
             android:layout_centerVertical="true"
+            android:textColor="@color/daaaa7"
             android:text="leyou_10045"
             android:layout_marginLeft="10dp" />
 
@@ -36,6 +38,7 @@
             android:layout_marginRight="10dp"
             android:layout_alignParentRight="true"
             android:text="提现方式>>"
+            android:textColor="?attr/colorPrimary"
             android:autoLink="all"
             android:layout_centerVertical="true" />
 
@@ -44,15 +47,16 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0.00元"
+            android:textColor="@color/daaaa7"
             android:layout_marginRight="10dp"
             android:layout_toLeftOf="@id/performoney"
             android:layout_centerVertical="true" />
-
         <TextView
             android:id="@+id/yuan_tip"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="任务奖励："
+            android:textColor="@color/_999999"
             android:layout_toLeftOf="@id/yuan"
             android:layout_centerVertical="true"/>
 
@@ -63,7 +67,7 @@
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
         android:layout_marginTop="12dp"
-        android:background="@color/colorPrimaryDark"
+        android:background="@drawable/appbg"
         android:orientation="horizontal">
 
         <ImageView
@@ -74,13 +78,15 @@
             android:layout_marginLeft="8dp"
             android:src="@mipmap/ic_launcher_round" />
         <Button
-            android:layout_width="64dp"
-            android:layout_height="42dp"
+            android:layout_width="62dp"
+            android:layout_height="36dp"
             android:layout_centerVertical="true"
             android:padding="0dp"
             android:layout_alignParentRight="true"
             android:layout_marginRight="8dp"
             android:text="进入"
+            android:background="@color/_007fff"
+            android:textColor="@color/_ffffff"
             android:id="@+id/app_in"
             android:layout_weight="0" />
         <LinearLayout
@@ -97,6 +103,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:paddingTop="4dp"
+                android:textColor="@color/_555555"
+                android:textSize="16dp"
                 android:paddingBottom="4dp"
                 android:text="应用试玩"
                 />
@@ -106,10 +114,126 @@
                 android:paddingTop="4dp"
                 android:paddingBottom="4dp"
                 android:textSize="12dp"
+                android:textColor="@color/_999999"
                 android:text="每个下载可获取0.15-0.2元任务奖励"
                 />
         </LinearLayout>
+    </RelativeLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/gamebg"
+        android:orientation="horizontal">
 
+        <ImageView
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_centerVertical="true"
+            android:id="@+id/imagegame"
+            android:layout_marginLeft="8dp"
+            android:src="@mipmap/ic_launcher_round" />
+        <Button
+            android:layout_width="62dp"
+            android:layout_height="36dp"
+            android:layout_centerVertical="true"
+            android:padding="0dp"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="8dp"
+            android:text="进入"
+            android:background="@color/_007fff"
+            android:textColor="@color/_ffffff"
+            android:id="@+id/game_in"
+            android:layout_weight="0" />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:orientation="vertical"
+            android:layout_marginLeft="10dp"
+            android:layout_toRightOf="@id/imagegame"
+            android:layout_toLeftOf="@id/game_in"
+            android:gravity="center_vertical"
+            >
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingTop="4dp"
+                android:textColor="@color/_555555"
+                android:textSize="16dp"
+                android:paddingBottom="4dp"
+                android:text="游戏试玩"
+                />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:textSize="12dp"
+                android:textColor="@color/_999999"
+                android:text="下载并注册可获取0.3-0.5元任务奖励"
+                />
+        </LinearLayout>
+    </RelativeLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/classic"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_centerVertical="true"
+            android:id="@+id/imageclassic"
+            android:layout_marginLeft="8dp"
+            android:src="@mipmap/ic_launcher_round" />
+        <Button
+            android:layout_width="62dp"
+            android:layout_height="36dp"
+            android:layout_centerVertical="true"
+            android:padding="0dp"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="8dp"
+            android:text="进入"
+            android:background="@color/_007fff"
+            android:textColor="@color/_ffffff"
+            android:id="@+id/classic_in"
+            android:layout_weight="0" />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:orientation="vertical"
+            android:layout_marginLeft="10dp"
+            android:layout_toRightOf="@id/imageclassic"
+            android:layout_toLeftOf="@id/classic_in"
+            android:gravity="center_vertical"
+            >
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingTop="4dp"
+                android:textColor="@color/_555555"
+                android:textSize="16dp"
+                android:paddingBottom="4dp"
+                android:text="更多精彩"
+                />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:textSize="12dp"
+                android:textColor="@color/_999999"
+                android:text="最新娱乐八卦，放松一下吧！"
+                />
+        </LinearLayout>
     </RelativeLayout>
 
 </LinearLayout>

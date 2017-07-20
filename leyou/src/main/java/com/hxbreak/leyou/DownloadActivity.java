@@ -17,14 +17,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
-
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import com.hxbreak.leyou.Adapter.AppListAdapter;
 import com.hxbreak.leyou.Bean.AppListResult;
 import com.hxbreak.leyou.Data.CreateMD5;
 import com.hxbreak.leyou.Task.DownloadTask;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -37,7 +35,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
@@ -307,7 +304,6 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
             public void onFailure(Call call, IOException e) {
 
             }
-
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 if(response.code() == 200){
@@ -316,7 +312,6 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
                 }
             }
         });
-
     }
 
     /**

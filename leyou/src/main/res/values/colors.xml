@@ -3,4 +3,19 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+
+    <color name="f6f8ee">#f6f8ee</color>
+    <color name="fafafa">#fafafa</color>
+    <color name="daaaa7">#daaaa7</color>
+    <color name="_999999">#999999</color>
+    <color name="_555555">#555555</color>
+    <color name="_ffffff">#ffffff</color>
+    <color name="_007fff">#007fff</color>
+    <color name="_fafafa">#fafafa</color>
+
+
+
+
+
+
 </resources>
