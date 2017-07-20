@@ -14,10 +14,10 @@ public class ContactActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contact);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.hb_toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.include);
         toolbar.setTitle("");
         setSupportActionBar(toolbar);
-        getActionBar().setDisplayHomeAsUpEnabled(true);
+//        getActionBar().setDisplayHomeAsUpEnabled(true);
         ((TextView)findViewById(R.id.hb_title)).setText("乐悠众包会员版");
     }
 
