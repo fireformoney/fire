@@ -410,8 +410,14 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
             Toast.makeText(this, "创建下载任务时发生意外 " + e.toString(), Toast.LENGTH_LONG).show();
         }
     }
-    public void requestLaunchPackage(String IPackage){
-        return ;
+    public boolean requestLaunchPackage(String IPackage){
+        try {
+            Intent intent = getPackageManager().getLaunchIntentForPackage(IPackage);
+            startActivity(intent);
+            return true;
+        }catch (Exception e){
+            return false;
+        }
     }
     public void requestInstallPackage(String path){
         String DataType = "application/vnd.android.package-archive";
