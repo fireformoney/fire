@@ -88,8 +88,6 @@ public class AppListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
         AppListAdapter.DownlaodInfo s = hashMap.get(position);
         if(s != null){
-            appViewHolder.appsize.setVisibility(View.GONE);
-            appViewHolder.progressView.setVisibility(View.VISIBLE);
             SpannableStringBuilder ssb = new SpannableStringBuilder(String.format("%.2fMB/%.2fMB", s.getBuffered() /1024 /1024.0, appInfos[position].apk_size / 1024 / 1024.0));
             ssb.setSpan(new ForegroundColorSpan(Color.BLUE), 0, String.format("%.2f", s.getBuffered() /1024 /1024.0).length() + 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             appViewHolder.downloadProg.setText(ssb);
@@ -107,6 +105,11 @@ public class AppListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                     appViewHolder.download_btn.setText("安装");break;
                 case 4:
                     appViewHolder.download_btn.setText("打开");break;
+            }
+            if(s.getStatus() > 2){
+                appViewHolder.appsize.setVisibility(View.VISIBLE);
+                appViewHolder.progressView.setVisibility(View.GONE);
+                appViewHolder.appsize.setText("下载完成");
             }
         }else{
             appViewHolder.download_btn.setText("下载");
