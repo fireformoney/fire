@@ -88,7 +88,11 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
                 case 2:
                     Toast.makeText(DownloadActivity.this, "列表加载失败", Toast.LENGTH_LONG).show();break;
                 case 100:
-                    appListAdapter.updateItemDownloadProgess(msg.arg1, msg.arg2);break;
+                    appListAdapter.updateItemDownloadProgess(msg.arg1, msg.arg2);
+                    if(appListAdapter.shouldLaunchInstall(msg.arg1)){
+                        requestInstallPackage(String.format("/%s.apk", appListAdapter.requestPackageName(msg.arg1)));
+                    }
+                    break;
                 case 101:
                     Toast.makeText(DownloadActivity.this, "下载任务出错", Toast.LENGTH_LONG).show();break;
                 case 200:
@@ -427,7 +431,7 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
         boolean passed = false;
         File file = new File(getFilesDir(), FileStorePath + path);
         String DataType = "application/vnd.android.package-archive";
-        Log.e("HxBreak", String.format("file:%s", String.valueOf(file.exists())));
+        Log.e("HxBreak", String.format("file:%s-%s", String.valueOf(file.exists()), file.getAbsolutePath()));
         try{
             Intent intent = new Intent();
             intent.setAction(Intent.ACTION_VIEW);

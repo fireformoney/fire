@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.TextView;
 
 import com.hxbreak.leyou.R;
@@ -22,6 +23,13 @@ public class ClassicWebActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         ((TextView)findViewById(R.id.hb_title)).setText(getString(R.string.app_name));
         mWebView = ((WebView)findViewById(R.id.web));
+        mWebView.setWebViewClient(new WebViewClient(){
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                view.loadUrl(url);
+                return true;
+            }
+        });//APP 内显示页面内容
         mWebView.loadUrl(clasicUrl);
     }
 

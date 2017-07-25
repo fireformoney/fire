@@ -122,10 +122,11 @@ public class AppListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
     }
     public String requestPackageName(int position){
+//        Log.e("HxBreak", String.format("id:%s requestPackageName", position));
         return appInfos[position].Package;
     }
-    public boolean isDownloading(int id){
-        return hashMap.get(id) != null;
+    public boolean shouldLaunchInstall(int id){
+        return hashMap.get(id).getBuffered() == appInfos[id].apk_size;
     }
 
     public synchronized int getItemStatus(int id){
@@ -169,7 +170,7 @@ public class AppListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             setItemStatus(id, 3, false);
         }
         notifyItemChanged(id);
-        Log.e("HxBreak", String.format("id:%d status:%d", id, 1));
+//        Log.e("HxBreak", String.format("id:%d status:%d", id, 1));
     }
     public class AppViewHolder extends RecyclerView.ViewHolder {
         private TextView id, appname, appsize, downloadProg;

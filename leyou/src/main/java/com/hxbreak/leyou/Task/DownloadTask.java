@@ -88,6 +88,7 @@ public class DownloadTask implements Callback {
                     downloadListener.onUpdate(current, downloadId);
                 }
             }
+            bos.flush();
             bos.close();
             bis.close();
         }else{
