@@ -18,7 +18,6 @@
         android:layout_width="wrap_content"
         android:layout_height="64dp"
         android:layout_weight="0"
-        android:background="@mipmap/ic_launcher"
         android:minHeight="64dp"
         android:minWidth="64dp" />
 

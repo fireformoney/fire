@@ -110,6 +110,9 @@ public class AppListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 appViewHolder.appsize.setVisibility(View.VISIBLE);
                 appViewHolder.progressView.setVisibility(View.GONE);
                 appViewHolder.appsize.setText("下载完成");
+            }else{
+                appViewHolder.appsize.setVisibility(View.GONE);
+                appViewHolder.progressView.setVisibility(View.VISIBLE);
             }
         }else{
             appViewHolder.download_btn.setText("下载");
