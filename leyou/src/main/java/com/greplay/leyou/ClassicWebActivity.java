@@ -20,7 +20,7 @@ public class ClassicWebActivity extends AppCompatActivity {
         toolbar.setTitle("");
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        ((TextView)findViewById(R.id.hb_title)).setText("乐悠众包会员版");
+        ((TextView)findViewById(R.id.hb_title)).setText(getString(R.string.app_name));
         mWebView = ((WebView)findViewById(R.id.web));
         mWebView.loadUrl(clasicUrl);
     }

@@ -20,7 +20,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main2);
         Toolbar toolbar = (Toolbar) findViewById(R.id.hb_toolbar);
         toolbar.setTitle("");
-        ((TextView)findViewById(R.id.hb_title)).setText("乐悠众包会员版");
+        ((TextView)findViewById(R.id.hb_title)).setText(getString(R.string.app_name));
         setSupportActionBar(toolbar);
         TextView moneyTextView =(TextView) findViewById(R.id.performoney);
         moneyTextView.setText(Html.fromHtml("<u>"+"提现方式>>"+"</u>"));

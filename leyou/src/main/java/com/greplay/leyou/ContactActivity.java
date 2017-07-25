@@ -18,7 +18,7 @@ public class ContactActivity extends AppCompatActivity {
         toolbar.setTitle("");
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        ((TextView)findViewById(R.id.hb_title)).setText("乐悠众包会员版");
+        ((TextView)findViewById(R.id.hb_title)).setText(getString(R.string.app_name));
     }
 
     @Override
