@@ -434,12 +434,12 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
         Log.e("HxBreak", String.format("file:%s-%s", String.valueOf(file.exists()), file.getAbsolutePath()));
         try{
             Intent intent = new Intent();
+            Runtime.getRuntime().exec("chmod 777 " + file.getAbsolutePath());
+            Runtime.getRuntime().exec("chmod 777 " + file.getParent());
             intent.setAction(Intent.ACTION_VIEW);
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.setDataAndType(Uri.fromFile(file), DataType);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            MyFileProvider myFileProvider = new MyFileProvider();
-            intent.setDataAndType(myFileProvider.getUriForFile(this, FILEPROVIDER, file), DataType);
-            Log.e(TAG, String.format("Intent Test: %s", intent.toString()));
+            Log.e(TAG, String.format("Intent Test1: %s", intent.toString()));
             startActivity(intent);
             passed = true;
         }catch (Exception e){
@@ -448,12 +448,12 @@ public class DownloadActivity extends BaseActivity implements Callback, AppListA
         if (!passed){
             try {
                 Intent intent = new Intent();
-                Runtime.getRuntime().exec("chmod 777 " + file.getAbsolutePath());
-                Runtime.getRuntime().exec("chmod 777 " + file.getParent());
                 intent.setAction(Intent.ACTION_VIEW);
-                intent.setDataAndType(Uri.fromFile(file), DataType);
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                Log.e(TAG, String.format("Intent Test: %s", intent.toString()));
+                MyFileProvider myFileProvider = new MyFileProvider();
+                intent.setDataAndType(myFileProvider.getUriForFile(this, FILEPROVIDER, file), DataType);
+                Log.e(TAG, String.format("Intent Test2: %s", intent.toString()));
                 startActivity(intent);
                 passed = true;
             }catch (Exception e){
