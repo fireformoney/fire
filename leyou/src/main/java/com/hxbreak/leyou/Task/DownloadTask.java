@@ -71,7 +71,10 @@ public class DownloadTask implements Callback {
             BufferedInputStream bis = new BufferedInputStream(response.body().byteStream());
             byte[] bt = new byte[51200];
             int size = 0, current = 0;
+            String contentSize = response.header("Content-Length", "0");
+            Log.e("HxBreak", "DownloadTask/75" + String.format("ContentSize: %s, ContentRange: %s", contentSize, contentRange));
             if(contentRange.equals("")){
+                downloadListener.onInit(Long.parseLong(contentSize), downloadId);
                 while(!shutdown && (-1 != (size = bis.read(bt, 0, bt.length)))){
                     bos.write(bt, 0, size);
                     current += size;
@@ -79,6 +82,7 @@ public class DownloadTask implements Callback {
                 }
             }else{
                 int base = Integer.parseInt(contentRange.substring(6, contentRange.indexOf('-')));
+                downloadListener.onInit(Long.parseLong(contentRange.split("/")[1]), downloadId);
                 while(!shutdown && ( -1 != (size = bis.read(bt, 0, bt.length)))){
                     bos.write(bt, 0, size);
                     if(current == 0) {
@@ -101,5 +105,6 @@ public class DownloadTask implements Callback {
     }
     public interface DownloadListener{
         public void onUpdate(int buffered, int id);
+        public void onInit(long length, int id);
     }
 }

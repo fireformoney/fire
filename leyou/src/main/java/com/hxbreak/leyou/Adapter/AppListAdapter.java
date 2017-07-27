@@ -37,6 +37,7 @@ public class AppListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private File[] filesDir;
     private RequestManager requestManager;
     private List<String> list;
+    private boolean isFromGame = false;
     public AppListAdapter(Context context, AppInfo[] appInfos, OnItemClick onItemClick, File[] files, List<String> list) {
         this.context = context;
         this.appInfos = appInfos;
@@ -45,6 +46,16 @@ public class AppListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         this.requestManager = Glide.with(context);
         this.list = list;
     }
+    public AppListAdapter(Context context, AppInfo[] appInfos, OnItemClick onItemClick, File[] files, List<String> list, boolean isFromGame) {
+        this.context = context;
+        this.appInfos = appInfos;
+        this.onItemClick = onItemClick;
+        this.filesDir = files;
+        this.requestManager = Glide.with(context);
+        this.list = list;
+        this.isFromGame = isFromGame;
+    }
+
     public void listRemove(String str){
         this.list.remove(str);
     }
@@ -68,7 +79,8 @@ public class AppListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         if(this.filesDir != null){
             for (File f : filesDir){
                 if(f != null && f.exists()){
-                    if(f.getName().equals(appInfos[position].Package + ".apk")){
+                    String tempPackageName = appInfos[position].Package != null ? appInfos[position].Package : appInfos[position].package_name;
+                    if(f.getName().equals(tempPackageName + ".apk")){
                         if(hashMap.get(position) == null){
                             if(f.length() >= appInfos[position].apk_size){
                                 hashMap.put(position, new DownlaodInfo((int) f.length(), 3));
@@ -82,7 +94,7 @@ public class AppListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
         requestManager.load(appInfos[position].icon_url).into(appViewHolder.appImage);
         for (String pStr : list){
-            if(pStr.equalsIgnoreCase(appInfos[position].Package)){
+            if(pStr.equalsIgnoreCase(appInfos[position].Package != null ? appInfos[position].Package : appInfos[position].package_name)){
                 setItemStatus(position, 4, false);
             }
         }
@@ -116,14 +128,21 @@ public class AppListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             }
         }else{
             appViewHolder.download_btn.setText("下载");
-            appViewHolder.appsize.setText(appInfos[position].apk_size / 1024 / 1024 + " MB");
+            String display_apksize = String.format("%.2f", isFromGame ? appInfos[position].apk_size / 1024.0 : appInfos[position].apk_size / 1024.0 / 1024.0) + " MB";
+            appViewHolder.appsize.setText(display_apksize);
             appViewHolder.appsize.setVisibility(View.VISIBLE);
             appViewHolder.progressView.setVisibility(View.GONE);
         }
     }
+
+    /**
+     * 确保返回正确数据
+     * @param position
+     * @return
+     */
     public String requestPackageName(int position){
 //        Log.e("HxBreak", String.format("id:%s requestPackageName", position));
-        return appInfos[position].Package;
+        return appInfos[position].Package != null ? appInfos[position].Package : appInfos[position].package_name;
     }
     public boolean shouldLaunchInstall(int id){
         return hashMap.get(id).getBuffered() == appInfos[id].apk_size;
@@ -136,6 +155,10 @@ public class AppListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }else{
             return buffered.getStatus();
         }
+    }
+    public void setItemSize(int id, long size){
+        appInfos[id].apk_size = size;
+        notifyItemChanged(id);
     }
     public synchronized void setItemStatus(int id, int status, boolean update){
         AppListAdapter.DownlaodInfo di = null;

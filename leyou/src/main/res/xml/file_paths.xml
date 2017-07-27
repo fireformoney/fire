@@ -1,3 +1,4 @@
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
     <files-path name="apppackage" path="appcache/"/>
+    <files-path name="gamepackage" path="gamecache/"/>
 </paths>

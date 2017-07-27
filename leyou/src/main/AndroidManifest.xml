@@ -16,7 +16,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".DownloadActivity" android:label="应用试玩"
+        <activity android:name=".AppDownloadActivity" android:label="应用试玩"
+            android:screenOrientation="portrait">
+        </activity>
+        <activity android:name=".GameDownloadActivity" android:label="游戏试玩"
             android:screenOrientation="portrait">
         </activity>
         <activity android:name="com.greplay.leyou.ContactActivity" android:label="乐悠众包会员版"

@@ -9,6 +9,7 @@ import com.google.gson.annotations.SerializedName;
 public class AppInfo {
     @SerializedName("package")
     public String Package;
+    public String package_name;
     public String name;
     public String type;
     public String version_name;

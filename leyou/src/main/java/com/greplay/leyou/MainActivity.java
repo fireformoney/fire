@@ -10,7 +10,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.hxbreak.leyou.DownloadActivity;
+import com.hxbreak.leyou.AppDownloadActivity;
+import com.hxbreak.leyou.GameDownloadActivity;
 import com.hxbreak.leyou.R;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -55,11 +56,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.app_in:
-                Intent intentApp = new Intent(this, DownloadActivity.class);
+                Intent intentApp = new Intent(this, AppDownloadActivity.class);
                 startActivity(intentApp);
                 break;
             case R.id.game_in:
-                Intent intentGame = new Intent(this, DownloadActivity.class);
+                Intent intentGame = new Intent(this, GameDownloadActivity.class);
                 startActivity(intentGame);
                 break;
             case R.id.classic_in:
