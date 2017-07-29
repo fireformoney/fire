@@ -38,6 +38,7 @@ public class AppListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private RequestManager requestManager;
     private List<String> list;
     private boolean isFromGame = false;
+    private long lastBindTime = 0;
     public AppListAdapter(Context context, AppInfo[] appInfos, OnItemClick onItemClick, File[] files, List<String> list) {
         this.context = context;
         this.appInfos = appInfos;
@@ -71,6 +72,8 @@ public class AppListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        lastBindTime = System.currentTimeMillis();
+        String TargetText = "init";
         AppViewHolder appViewHolder = (AppViewHolder)holder;
         appViewHolder.id.setText(String.valueOf(position + 1));
         appViewHolder.appname.setText(appInfos[position].name);
@@ -92,7 +95,9 @@ public class AppListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 }
             }
         }
-        requestManager.load(appInfos[position].icon_url).into(appViewHolder.appImage);
+//        if(appViewHolder.appImage.getDrawable() == null) {
+            requestManager.load(appInfos[position].icon_url).into(appViewHolder.appImage);
+//        }
         for (String pStr : list){
             if(pStr.equalsIgnoreCase(appInfos[position].Package != null ? appInfos[position].Package : appInfos[position].package_name)){
                 setItemStatus(position, 4, false);
@@ -108,16 +113,19 @@ public class AppListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             switch (s.getStatus()){
                 //0 未开始下载,  1 下载中, 2 暂停下载中, 3 下载完成 4 安装完成
                 case 0:
-                    appViewHolder.download_btn.setText("下载");break;
+                    TargetText = "下载";break;
                 case 1:
-                    appViewHolder.download_btn.setText("暂停");break;
+                    TargetText = "暂停";break;
                 case 2:
-                    appViewHolder.download_btn.setText("继续");break;
+                    TargetText = "继续";break;
                 case 3:
-                    appViewHolder.download_btn.setText("安装");break;
+                    TargetText = "安装" ;break;
                 case 4:
-                    appViewHolder.download_btn.setText("打开");break;
+                    TargetText = "打开";break;
+                default:
+                    TargetText = "下载";
             }
+
             if(s.getStatus() > 2){
                 appViewHolder.appsize.setVisibility(View.VISIBLE);
                 appViewHolder.progressView.setVisibility(View.GONE);
@@ -127,12 +135,15 @@ public class AppListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 appViewHolder.progressView.setVisibility(View.VISIBLE);
             }
         }else{
-            appViewHolder.download_btn.setText("下载");
+            TargetText = "下载";
             String display_apksize = String.format("%.2f", isFromGame ? appInfos[position].apk_size / 1024.0 : appInfos[position].apk_size / 1024.0 / 1024.0) + " MB";
             appViewHolder.appsize.setText(display_apksize);
             appViewHolder.appsize.setVisibility(View.VISIBLE);
             appViewHolder.progressView.setVisibility(View.GONE);
         }
+//        if(!appViewHolder.download_btn.getText().toString().equals(TargetText)){
+            appViewHolder.download_btn.setText(TargetText);
+//        }
     }
 
     /**
@@ -172,6 +183,10 @@ public class AppListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
         Log.e("HxBreak", String.format("id:%d status:%d", id, status));
     }
+    public void requestRefreshItem(int id){
+        if(System.currentTimeMillis() - lastBindTime > 240)
+            notifyItemChanged(id);
+    }
     @Override
     public int getItemCount() {
         return appInfos.length;
@@ -190,7 +205,7 @@ public class AppListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         DownlaodInfo source = hashMap.get(id);
         hashMap.put(id, new DownlaodInfo(buffered, source == null ? 1 : source.getStatus()));
         if (buffered >= appInfos[id].apk_size){
-            setItemStatus(id, 3, false);
+            setItemStatus(id, 3, true);
         }
         notifyItemChanged(id);
 //        Log.e("HxBreak", String.format("id:%d status:%d", id, 1));

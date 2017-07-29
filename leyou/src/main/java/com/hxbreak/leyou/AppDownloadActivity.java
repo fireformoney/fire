@@ -151,7 +151,7 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setOrientation(OrientationHelper.VERTICAL);
         recyclerView.setLayoutManager(linearLayoutManager);
-        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.setItemAnimator(null);
         appListAdapter = new AppListAdapter(this, appListResult.content.list, this, new File(getFilesDir(), FileStorePath).listFiles(), getInstalledAppList());
         recyclerView.setAdapter(appListAdapter);
     }

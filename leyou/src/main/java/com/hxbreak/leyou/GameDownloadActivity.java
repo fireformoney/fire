@@ -142,7 +142,7 @@ public class GameDownloadActivity extends BaseActivity implements Callback, AppL
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setOrientation(OrientationHelper.VERTICAL);
         recyclerView.setLayoutManager(linearLayoutManager);
-        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.setItemAnimator(null);
         appListAdapter = new AppListAdapter(this, appListResult.content.list, this, new File(getFilesDir(), FileStorePath).listFiles(), getInstalledAppList(), true);
         recyclerView.setAdapter(appListAdapter);
     }

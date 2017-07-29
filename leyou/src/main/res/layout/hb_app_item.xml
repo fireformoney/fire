@@ -11,10 +11,11 @@
         android:layout_weight="0"
         android:minWidth="20dp"
         android:gravity="center"
-        android:text="11" />
+        android:text="0" />
 
     <ImageView
         android:id="@+id/hb_item_image"
+        android:src="@null"
         android:layout_width="wrap_content"
         android:layout_height="64dp"
         android:layout_weight="0"
@@ -81,5 +82,5 @@
         android:background="@color/_232323"
         android:layout_weight="0"
         android:textColor="@color/_fafafa"
-        android:text="下载" />
+        android:text="" />
 </LinearLayout>
