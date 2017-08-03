@@ -33,6 +33,7 @@ import com.google.gson.annotations.SerializedName;
 import com.hxbreak.leyou.Adapter.AppListAdapter;
 import com.hxbreak.leyou.Bean.AppListResult;
 import com.hxbreak.leyou.Data.CreateMD5;
+import com.hxbreak.leyou.Data.UserData;
 import com.hxbreak.leyou.Data._UUID;
 import com.hxbreak.leyou.Provider.MyFileProvider;
 import com.hxbreak.leyou.Task.DownloadTask;
@@ -68,6 +69,7 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
     private final String TAG = "HxBreak";
     private final String FILEPROVIDER = "com.hxbreak.leyou.fileprovider";
 
+    private UserData mUserData;
     private Toolbar toolbar;
     private RecyclerView recyclerView;
     private ProgressBar progressBar;
@@ -99,6 +101,7 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
                 case 101:
                     Toast.makeText(AppDownloadActivity.this, "下载任务出错", Toast.LENGTH_LONG).show();break;
                 case 200:
+                    Toast.makeText(getApplicationContext(), "奖励已经获得", Toast.LENGTH_SHORT).show();
                     appListAdapter.listAdd(msg.getData().getString("package", ""));break;
                 case 201:
                     appListAdapter.listRemove(msg.getData().getString("package", ""));break;
@@ -110,7 +113,7 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         okHttpClient = new OkHttpClient();
-
+        mUserData = new UserData(this);
         toolbar = (Toolbar) findViewById(R.id.hb_toolbar);
         recyclerView = (RecyclerView)findViewById(R.id.hb_app_recylerview);
         progressBar = (ProgressBar)findViewById(R.id.hx_progressBar);
@@ -552,7 +555,11 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
                 bundle.putString("package", intent.getDataString().substring(8));
                 msg.what = 200;
                 msg.setData(bundle);
-                handler.sendMessage(msg);
+                if(appListAdapter.hasPackageInList(intent.getDataString().substring(8))){
+                    handler.sendMessage(msg);
+                    int x = (int)(Math.random() * 100);
+                    mUserData.setUserMoney(mUserData.getUserMoney() + (float) (x / 100.0));
+                }
             }else if(intent.getAction().equals(Intent.ACTION_PACKAGE_REMOVED)){
                 Bundle bundle = new Bundle();
                 bundle.putString("package", intent.getDataString().substring(8));

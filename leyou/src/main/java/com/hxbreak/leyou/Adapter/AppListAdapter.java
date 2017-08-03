@@ -145,6 +145,15 @@ public class AppListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             appViewHolder.download_btn.setText(TargetText);
 //        }
     }
+    public boolean hasPackageInList(String pkgName){
+        for (AppInfo aInfo : appInfos){
+            String srcName = aInfo.package_name != null ? aInfo.package_name : aInfo.Package;
+            if(srcName.equals(pkgName)){
+                return true;
+            }
+        }
+        return false;
+    }
 
     /**
      * 确保返回正确数据
