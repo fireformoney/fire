@@ -60,11 +60,11 @@ import okhttp3.Response;
 
 public class AppDownloadActivity extends BaseActivity implements Callback, AppListAdapter.OnItemClick, DownloadTask.DownloadListener{
 
-    private static final String APP_SECRET = "testappsecret";
+    private final String CHANNEL_ID = "20019a";
+    private final String APP_ID = "b1019a";
+    private static final String APP_SECRET = "D9IIkKvFYA8q8f0gsHxSpccWyOKT4dAp";
     private final String applisturl = "http://package.mhacn.net/api/v2/apps/list";
     private final String appdownloadreport = "http://package.mhacn.net/api/delay/report/download/start";
-    private final String CHANNEL_ID = "20020a";
-    private final String APP_ID = "b1020a";
     private final String FileStorePath = "/appcache";
     private final String TAG = "HxBreak";
     private final String FILEPROVIDER = "com.hxbreak.leyou.fileprovider";

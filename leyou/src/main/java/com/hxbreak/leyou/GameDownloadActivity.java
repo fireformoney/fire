@@ -55,11 +55,12 @@ import okhttp3.Response;
 
 public class GameDownloadActivity extends BaseActivity implements Callback, AppListAdapter.OnItemClick, DownloadTask.DownloadListener{
     private final String applisturl = "http://112.126.66.190/games.php";
-    private final String CHANNEL_ID = "20020a";
-    private final String APP_ID = "b1020a";
     private final String FileStorePath = "/gamecache";
     private final String TAG = "HxBreak";
     private final String FILEPROVIDER = "com.hxbreak.leyou.fileprovider";
+    private final String CHANNEL_ID = "20019a";
+    private final String APP_ID = "b1019a";
+    private static final String APP_SECRET = "D9IIkKvFYA8q8f0gsHxSpccWyOKT4dAp";
 
     private UserData mUserData;
     private Toolbar toolbar;
