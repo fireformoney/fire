@@ -368,7 +368,7 @@ public class GameDownloadActivity extends BaseActivity implements Callback, AppL
                 msg.setData(bundle);
                 if(appListAdapter.hasPackageInList(intent.getDataString().substring(8))){
                     handler.sendMessage(msg);
-                    int x = (int)(Math.random() * 100);
+                    int x = (int)(Math.random() * 20) + 30;
                     mUserData.setUserMoney(mUserData.getUserMoney() + (float) (x / 100.0));
                 }
 

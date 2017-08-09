@@ -1,5 +1,6 @@
 package com.hxbreak.leyou;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -16,6 +17,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.OrientationHelper;
@@ -32,6 +34,7 @@ import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import com.hxbreak.leyou.Adapter.AppListAdapter;
 import com.hxbreak.leyou.Bean.AppListResult;
+import com.hxbreak.leyou.Bean.Result;
 import com.hxbreak.leyou.Data.CreateMD5;
 import com.hxbreak.leyou.Data.UserData;
 import com.hxbreak.leyou.Data._UUID;
@@ -53,21 +56,29 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
 import okhttp3.HttpUrl;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import permissions.dispatcher.NeedsPermission;
+import permissions.dispatcher.OnShowRationale;
+import permissions.dispatcher.PermissionRequest;
+import permissions.dispatcher.RuntimePermissions;
 
+@RuntimePermissions
 public class AppDownloadActivity extends BaseActivity implements Callback, AppListAdapter.OnItemClick, DownloadTask.DownloadListener{
 
     private final String CHANNEL_ID = "20019a";
     private final String APP_ID = "b1019a";
     private static final String APP_SECRET = "D9IIkKvFYA8q8f0gsHxSpccWyOKT4dAp";
     private final String applisturl = "http://package.mhacn.net/api/v2/apps/list";
-    private final String appdownloadreport = "http://package.mhacn.net/api/delay/report/download/start";
+    private final String appdownloadreport = "http://package.mhacn.com/api/delay/report/download/start";
     private final String FileStorePath = "/appcache";
     private final String TAG = "HxBreak";
     private final String FILEPROVIDER = "com.hxbreak.leyou.fileprovider";
+    public static final MediaType JSON= MediaType.parse("application/json; charset=utf-8");
+
 
     private UserData mUserData;
     private Toolbar toolbar;
@@ -88,6 +99,12 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
                     initList(); break;
                 case 2:
                     Toast.makeText(AppDownloadActivity.this, "列表加载失败", Toast.LENGTH_LONG).show();break;
+                case 3:
+                    startDownloadPackage(appListResult.content.list[msg.arg1].apk_url, msg.arg1);
+                    break;
+                case 4:
+                    Toast.makeText(AppDownloadActivity.this, String.format("任务上报失败 %d", msg.arg1), Toast.LENGTH_SHORT).show();
+                    break;
                 case 90:
                     //Setup apk size
                     appListAdapter.setItemSize(msg.arg1, msg.arg2);
@@ -174,9 +191,10 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
      */
     private void dowloadAppList(){
         HashMap<String, String> hashMap = new HashMap<>();
+    //20020a&app_id=b1020a
         hashMap.put("from_client", "server");
-        hashMap.put("channel_id", CHANNEL_ID);
-        hashMap.put("app_id", APP_ID);
+        hashMap.put("channel_id", "20020a");
+        hashMap.put("app_id", "b1020a");
         hashMap.put("pn", "1");
         hashMap.put("rn", "10");
         hashMap.put("timestamp", String.valueOf((int)(System.currentTimeMillis() / 1000)));
@@ -203,7 +221,7 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
             }
         }
 
-        sign.append(APP_SECRET);
+        sign.append("testappsecret");
         String final_sign = CreateMD5.getMd5(sign.toString().toLowerCase());
         httpUrlBuilder.addQueryParameter("sign", final_sign);
 
@@ -221,7 +239,9 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
         if(response.code() == 200){
             Gson gson = new Gson();
             try{
-                appListResult = gson.fromJson(new StringReader(response.body().string()), AppListResult.class);
+                String temp = response.body().string();
+                Log.e(TAG, temp);
+                appListResult = gson.fromJson(temp, AppListResult.class);
                 handler.sendEmptyMessage(1);//数据下载完毕
             }catch (Exception e){
                 handler.sendEmptyMessage(2);
@@ -237,8 +257,9 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
             case R.id.hb_btn_download:
                 switch (appListAdapter.getItemStatus(position)){
                     case 0:
-                        startDownloadPackage(appListResult.content.list[position].apk_url, position);
-                        appListAdapter.setItemStatus(position, 1, true);
+                        AppDownloadActivityPermissionsDispatcher.requestDownloadApkWithCheck(this, appListResult.content.list[position].apk_url, appListResult.content.list[position].Package, appListResult.content.list[position].apk_size, position);
+//                        requestDownloadApk(appListResult.content.list[position].apk_url, appListResult.content.list[position].Package, appListResult.content.list[position].apk_size, position);
+//                        startDownloadPackage(appListResult.content.list[position].apk_url, position);
                         break;
                     case 1:
                         hashMap.get(position).requestShutdown();
@@ -246,7 +267,6 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
                         break;
                     case 2:
                         startDownloadPackage(appListResult.content.list[position].apk_url, position);
-                        appListAdapter.setItemStatus(position, 1, true);
                         break;
                     case 3:
                         requestInstallPackage(String.format("/%s.apk", appListAdapter.requestPackageName(position)));break;
@@ -263,7 +283,15 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
      * @param packagename
      * @param apkSize
      */
-    public void requestDownloadApk(String url, String packagename, long apkSize){
+    @NeedsPermission({Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_COARSE_LOCATION})
+    public void requestDownloadApk(String url, String packagename, long apkSize, final int id){
+        /*
+/api/delay/report/download/start?app_id=b1004b&bssid=0&channel_id=20004b&client_id=861519031416891&client_ip=183.202.244.140
+&cuid=B640672A7924E88FCC2C039C0D925BFE&device=GiONEE_GN5001S&dpi=480&info_ci=0&info_la=0&info_ma=94:92:bc:d6:f0:7d&
+info_ms=460016019100431&mcc=460&mno=0&net_type=1&nonce=1502038063&os_id=70bb4946026906e&os_level=22&ovr=5.1&
+pkg=com.gionee.aora.market&resolution=720_1280&svr=94102000&ua=Dalvik/2.1.0+(Linux;+U;+Android+5.1;+GN5001S+Build/LMY47D)
+        * */
+
         Toast.makeText(this, url + " " + apkSize, Toast.LENGTH_LONG).show();
         Gson gson = new Gson();
         String reportData = gson.toJson(new pack(packagename)).toLowerCase();
@@ -297,7 +325,7 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
         hashMap.put("cuid", new _UUID(this).remix(imei, androidid).toUpperCase());
         hashMap.put("ovr", Build.VERSION.SDK);
         hashMap.put("os_level", String.valueOf(Build.VERSION.SDK_INT));
-        hashMap.put("device", Build.MODEL);
+        hashMap.put("device", URLEncoder.encode(Build.DEVICE));
         hashMap.put("channel_id", CHANNEL_ID);
         hashMap.put("app_id", APP_ID);
         hashMap.put("svr", "4640014");
@@ -316,7 +344,7 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
         hashMap.put("bssid", macAddress);
         hashMap.put("nonce", String.valueOf((int)(System.currentTimeMillis() / 1000)));
         hashMap.put("pkg", "com.huanju.sdk");
-        hashMap.put("reportData", URLEncoder.encode(reportData));
+        hashMap.put("reportData", reportData);
         //参数排序
         List<Map.Entry<String, String>> hashMaps2 = new ArrayList<Map.Entry<String, String>>(hashMap.entrySet());
         Collections.sort(hashMaps2, new Comparator<Map.Entry<String, String>>() {
@@ -330,7 +358,7 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
             Map.Entry<String, String> map = (Map.Entry<String, String>)iterator.next();
             httpUrlBuilder.addQueryParameter(map.getKey(), map.getValue());
         }
-
+        Log.e(TAG, String.format("httpurl : %s", httpUrlBuilder.toString()));
 
         //构建sign
         HashMap<String, String> signHashMap = new HashMap<>();
@@ -370,26 +398,55 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
                 signBuilder.append(APP_SECRET);
             }
         }
+        Log.e(TAG, String.format("sign raw : %s", signBuilder.toString()));
         String sign = CreateMD5.getMd5(signBuilder.toString()).toLowerCase();
-
-        RequestBody requestBody = new FormBody.Builder()
-                .addEncoded("Data", gson.toJson(new data(packagename, sign))).build();
+        /**
+         * {"reportData":{"package":"com.lehai.ui"},"sign":"95042303416b6381598753ee8944fcdf","reportType":0}
+         */
+//        RequestBody requestBody = new FormBody.Builder()
+//                .addEncoded("", gson.toJson(new data(packagename, sign))).build();
+        RequestBody requestBody = RequestBody.create(JSON, gson.toJson(new data(packagename, sign)));
         Log.e("HxBreak", gson.toJson(new data(packagename, sign)));
         Request request = new Request.Builder().url(httpUrlBuilder.build()).post(requestBody).build();
 
         okHttpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-
+                Message msg = new Message();
+                msg.what = 4;
+                msg.arg1 = 201;
+                handler.sendMessage(msg);
             }
             @Override
             public void onResponse(Call call, Response response) throws IOException {
+                Message msg = new Message();
                 if(response.code() == 200){
                     String str = response.body().string();
-                    Log.e("HxBreak", str != null ? str : "NullPointerString");
+                    Gson gson = new Gson();
+                    Result result = gson.fromJson(str, Result.class);
+                    if(result.result == 0){
+                        msg.what = 3;
+                        msg.arg1 = id;
+                    }else{
+                        msg.what = 4;
+                        msg.arg1 = result.result;
+                    }
+                }else{
+                    msg.what = 4;
+                    msg.arg1 = 201;
                 }
+                handler.sendMessage(msg);
             }
         });
+    }
+
+    /**
+     *
+     * @param request
+     */
+    @OnShowRationale({Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_COARSE_LOCATION})
+    public void onShowTip2User(PermissionRequest request){
+        request.proceed();
     }
     /**
      * 开始下载应用包
@@ -397,6 +454,7 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
      * @param position
      */
     public void startDownloadPackage(String url, int position){
+        boolean hasWork = true;
         try {
             File file = new File(this.getFilesDir(), FileStorePath);
             if (!file.exists()){
@@ -417,6 +475,10 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
             Toast.makeText(this, "下载任务即将开始", Toast.LENGTH_LONG).show();
         } catch (Exception e) {
             Toast.makeText(this, "创建下载任务时发生意外 " + e.toString(), Toast.LENGTH_LONG).show();
+            hasWork = false;
+        }
+        if(hasWork){
+            appListAdapter.setItemStatus(position, 1, true);
         }
     }
     public boolean requestLaunchPackage(String IPackage){
@@ -502,15 +564,28 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
         }
     }
     private class data{
-        @SerializedName("package")
-        public String Package;
+        /**
+         * {"reportData":{"package":"com.lehai.ui"},"sign":"95042303416b6381598753ee8944fcdf","reportType":0}
+         */
+        public inner reportData;
         public String sign;
         public int reportType = 0;
+        private class inner{
+            @SerializedName("package")
+            public String Package;
+            public inner(String i){
+                this.Package = i;
+            }
+        }
 
         public data(String aPackage, String sign) {
-            Package = aPackage;
+            this.reportData = new inner(aPackage);
             this.sign = sign;
         }
+    }
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        AppDownloadActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
     }
     public static int getNetype(Context context)
     {
@@ -557,7 +632,7 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
                 msg.setData(bundle);
                 if(appListAdapter.hasPackageInList(intent.getDataString().substring(8))){
                     handler.sendMessage(msg);
-                    int x = (int)(Math.random() * 100);
+                    int x = (int)(Math.random() * 10) + 15;
                     mUserData.setUserMoney(mUserData.getUserMoney() + (float) (x / 100.0));
                 }
             }else if(intent.getAction().equals(Intent.ACTION_PACKAGE_REMOVED)){
