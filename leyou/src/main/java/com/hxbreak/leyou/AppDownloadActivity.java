@@ -72,7 +72,7 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
     private final String CHANNEL_ID = "20019a";
     private final String APP_ID = "b1019a";
     private static final String APP_SECRET = "D9IIkKvFYA8q8f0gsHxSpccWyOKT4dAp";
-    private final String applisturl = "http://package.mhacn.net/api/v2/apps/list";
+    private final String applisturl = "http://112.126.66.190/apps.php";
     private final String appdownloadreport = "http://package.mhacn.com/api/delay/report/download/start";
     private final String FileStorePath = "/appcache";
     private final String TAG = "HxBreak";
@@ -85,7 +85,7 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
     private RecyclerView recyclerView;
     private ProgressBar progressBar;
     private OkHttpClient okHttpClient;
-    private AppListResult appListResult;
+    private AppListResult.Content appListResult;
     private AppListAdapter appListAdapter;
     private BroadcastReceiver broadcastReceiver;
 
@@ -100,7 +100,7 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
                 case 2:
                     Toast.makeText(AppDownloadActivity.this, "列表加载失败", Toast.LENGTH_LONG).show();break;
                 case 3:
-                    startDownloadPackage(appListResult.content.list[msg.arg1].apk_url, msg.arg1);
+                    startDownloadPackage(appListResult.list[msg.arg1].apk_url, msg.arg1);
                     break;
                 case 4:
                     Toast.makeText(AppDownloadActivity.this, String.format("任务上报失败 %d", msg.arg1), Toast.LENGTH_SHORT).show();
@@ -172,7 +172,7 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
         linearLayoutManager.setOrientation(OrientationHelper.VERTICAL);
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setItemAnimator(null);
-        appListAdapter = new AppListAdapter(this, appListResult.content.list, this, new File(getFilesDir(), FileStorePath).listFiles(), getInstalledAppList());
+        appListAdapter = new AppListAdapter(this, appListResult.list, this, new File(getFilesDir(), FileStorePath).listFiles(), getInstalledAppList());
         recyclerView.setAdapter(appListAdapter);
     }
 
@@ -195,8 +195,8 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
         hashMap.put("from_client", "server");
         hashMap.put("channel_id", "20020a");
         hashMap.put("app_id", "b1020a");
-        hashMap.put("pn", "1");
-        hashMap.put("rn", "10");
+        hashMap.put("page", String.valueOf((int)(Math.random() * 10)));
+        hashMap.put("size", "10");
         hashMap.put("timestamp", String.valueOf((int)(System.currentTimeMillis() / 1000)));
         HttpUrl.Builder httpUrlBuilder = HttpUrl.parse(applisturl).newBuilder();
 //        Iterator iterator = hashMap.entrySet().iterator();
@@ -221,8 +221,8 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
             }
         }
 
-        sign.append("testappsecret");
-        String final_sign = CreateMD5.getMd5(sign.toString().toLowerCase());
+        sign.append(APP_SECRET);
+        String final_sign = CreateMD5.getMd5(sign.toString()).toLowerCase();
         httpUrlBuilder.addQueryParameter("sign", final_sign);
 
         Request request = new Request.Builder().url(httpUrlBuilder.build()).build();
@@ -241,7 +241,7 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
             try{
                 String temp = response.body().string();
                 Log.e(TAG, temp);
-                appListResult = gson.fromJson(temp, AppListResult.class);
+                appListResult = gson.fromJson(temp, AppListResult.Content.class);
                 handler.sendEmptyMessage(1);//数据下载完毕
             }catch (Exception e){
                 handler.sendEmptyMessage(2);
@@ -257,7 +257,7 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
             case R.id.hb_btn_download:
                 switch (appListAdapter.getItemStatus(position)){
                     case 0:
-                        AppDownloadActivityPermissionsDispatcher.requestDownloadApkWithCheck(this, appListResult.content.list[position].apk_url, appListResult.content.list[position].Package, appListResult.content.list[position].apk_size, position);
+                        AppDownloadActivityPermissionsDispatcher.requestDownloadApkWithCheck(this, appListResult.list[position].apk_url, appListResult.list[position].Package, appListResult.list[position].apk_size, position);
 //                        requestDownloadApk(appListResult.content.list[position].apk_url, appListResult.content.list[position].Package, appListResult.content.list[position].apk_size, position);
 //                        startDownloadPackage(appListResult.content.list[position].apk_url, position);
                         break;
@@ -266,7 +266,7 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
                         appListAdapter.setItemStatus(position, 2, true);
                         break;
                     case 2:
-                        startDownloadPackage(appListResult.content.list[position].apk_url, position);
+                        startDownloadPackage(appListResult.list[position].apk_url, position);
                         break;
                     case 3:
                         requestInstallPackage(String.format("/%s.apk", appListAdapter.requestPackageName(position)));break;
