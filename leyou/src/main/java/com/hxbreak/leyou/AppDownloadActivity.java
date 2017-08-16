@@ -303,8 +303,14 @@ pkg=com.gionee.aora.market&resolution=720_1280&svr=94102000&ua=Dalvik/2.1.0+(Lin
         if(tm != null){
             imei = tm.getDeviceId();
             imsi = tm.getSubscriberId();
-            mcc = tm.getNetworkOperator().substring(0, 3);
-            mnc = tm.getNetworkOperator().substring(3);
+            try {
+                mcc = tm.getNetworkOperator().substring(0, 3);
+                mnc = tm.getNetworkOperator().substring(3);
+            }catch (Exception e){
+                mcc = "310";
+                mnc = "260";
+            }
+
             GsmCellLocation cellLocation = (GsmCellLocation)tm.getCellLocation();
             la = String.valueOf(cellLocation.getLac());
             ci = String.valueOf(cellLocation.getCid());
@@ -325,7 +331,8 @@ pkg=com.gionee.aora.market&resolution=720_1280&svr=94102000&ua=Dalvik/2.1.0+(Lin
         hashMap.put("cuid", new _UUID(this).remix(imei, androidid).toUpperCase());
         hashMap.put("ovr", Build.VERSION.SDK);
         hashMap.put("os_level", String.valueOf(Build.VERSION.SDK_INT));
-        hashMap.put("device", URLEncoder.encode(Build.DEVICE));
+        hashMap.put("device", URLEncoder.encode(Build.MODEL.replace(" ", "")));
+
         hashMap.put("channel_id", CHANNEL_ID);
         hashMap.put("app_id", APP_ID);
         hashMap.put("svr", "4640014");
@@ -335,7 +342,7 @@ pkg=com.gionee.aora.market&resolution=720_1280&svr=94102000&ua=Dalvik/2.1.0+(Lin
         hashMap.put("info_ms", imsi);
         hashMap.put("client_id", imei);
         hashMap.put("dpi", String.valueOf(getResources().getDisplayMetrics().densityDpi));
-        hashMap.put("client_ip", ip);
+        hashMap.put("client_ip", mUserData.getUserIp());
         hashMap.put("mcc", mcc);
         hashMap.put("mno", mnc);
         hashMap.put("info_la", la);
