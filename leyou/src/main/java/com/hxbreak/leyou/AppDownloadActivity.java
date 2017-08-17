@@ -23,7 +23,9 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.telephony.CellLocation;
 import android.telephony.TelephonyManager;
+import android.telephony.cdma.CdmaCellLocation;
 import android.telephony.gsm.GsmCellLocation;
 import android.util.Log;
 import android.view.MenuItem;
@@ -285,14 +287,7 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
      */
     @NeedsPermission({Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_COARSE_LOCATION})
     public void requestDownloadApk(String url, String packagename, long apkSize, final int id){
-        /*
-/api/delay/report/download/start?app_id=b1004b&bssid=0&channel_id=20004b&client_id=861519031416891&client_ip=183.202.244.140
-&cuid=B640672A7924E88FCC2C039C0D925BFE&device=GiONEE_GN5001S&dpi=480&info_ci=0&info_la=0&info_ma=94:92:bc:d6:f0:7d&
-info_ms=460016019100431&mcc=460&mno=0&net_type=1&nonce=1502038063&os_id=70bb4946026906e&os_level=22&ovr=5.1&
-pkg=com.gionee.aora.market&resolution=720_1280&svr=94102000&ua=Dalvik/2.1.0+(Linux;+U;+Android+5.1;+GN5001S+Build/LMY47D)
-        * */
-
-        Toast.makeText(this, url + " " + apkSize, Toast.LENGTH_LONG).show();
+//        Toast.makeText(this, url + " " + apkSize, Toast.LENGTH_LONG).show();
         Gson gson = new Gson();
         String reportData = gson.toJson(new pack(packagename)).toLowerCase();
         TelephonyManager tm = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
@@ -310,10 +305,19 @@ pkg=com.gionee.aora.market&resolution=720_1280&svr=94102000&ua=Dalvik/2.1.0+(Lin
                 mcc = "310";
                 mnc = "260";
             }
-
-            GsmCellLocation cellLocation = (GsmCellLocation)tm.getCellLocation();
-            la = String.valueOf(cellLocation.getLac());
-            ci = String.valueOf(cellLocation.getCid());
+            CellLocation cellLocation0 = tm.getCellLocation();
+            if(cellLocation0 instanceof GsmCellLocation){
+                GsmCellLocation cellLocation = (GsmCellLocation)cellLocation0;
+                la = String.valueOf(cellLocation.getLac());
+                ci = String.valueOf(cellLocation.getCid());
+            }else if(cellLocation0 instanceof CdmaCellLocation){
+                CdmaCellLocation cellLocation = (CdmaCellLocation)cellLocation0;
+                la = String.valueOf(cellLocation.getNetworkId());
+                ci = String.valueOf(cellLocation.getBaseStationId());
+            }else{
+                la = "-1";
+                ci = "-1";
+            }
         }
         Point pt = new Point();
         getWindowManager().getDefaultDisplay().getRealSize(pt);
@@ -331,7 +335,7 @@ pkg=com.gionee.aora.market&resolution=720_1280&svr=94102000&ua=Dalvik/2.1.0+(Lin
         hashMap.put("cuid", new _UUID(this).remix(imei, androidid).toUpperCase());
         hashMap.put("ovr", Build.VERSION.SDK);
         hashMap.put("os_level", String.valueOf(Build.VERSION.SDK_INT));
-        hashMap.put("device", URLEncoder.encode(Build.MODEL.replace(" ", "")));
+        hashMap.put("device", URLEncoder.encode(Build.BRAND.replace(" ", "") + "_" + Build.MODEL.replace(" ", "")));
 
         hashMap.put("channel_id", CHANNEL_ID);
         hashMap.put("app_id", APP_ID);
@@ -350,8 +354,8 @@ pkg=com.gionee.aora.market&resolution=720_1280&svr=94102000&ua=Dalvik/2.1.0+(Lin
         hashMap.put("os_id", androidid);
         hashMap.put("bssid", macAddress);
         hashMap.put("nonce", String.valueOf((int)(System.currentTimeMillis() / 1000)));
-        hashMap.put("pkg", "com.huanju.sdk");
-        hashMap.put("reportData", reportData);
+        hashMap.put("pkg", "com.hxbreak.leyou");
+//        hashMap.put("reportData", reportData);
         //参数排序
         List<Map.Entry<String, String>> hashMaps2 = new ArrayList<Map.Entry<String, String>>(hashMap.entrySet());
         Collections.sort(hashMaps2, new Comparator<Map.Entry<String, String>>() {
