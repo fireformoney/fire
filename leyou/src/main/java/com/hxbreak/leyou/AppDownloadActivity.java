@@ -214,7 +214,6 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
         Iterator iterator = hashMap2.iterator();
         while(iterator.hasNext()){
             Map.Entry<String, String> entry = (Map.Entry<String, String>)iterator.next();
-            httpUrlBuilder.addQueryParameter(entry.getKey(), entry.getValue());
             sign.append(entry.getKey());
             sign.append("=");
             sign.append(entry.getValue());
@@ -287,7 +286,6 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
      */
     @NeedsPermission({Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_COARSE_LOCATION})
     public void requestDownloadApk(String url, String packagename, long apkSize, final int id){
-//        Toast.makeText(this, url + " " + apkSize, Toast.LENGTH_LONG).show();
         Gson gson = new Gson();
         String reportData = gson.toJson(new pack(packagename)).toLowerCase();
         TelephonyManager tm = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
