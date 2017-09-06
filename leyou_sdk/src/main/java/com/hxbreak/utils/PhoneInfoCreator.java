@@ -19,14 +19,14 @@ import okhttp3.HttpUrl;
 
 public class PhoneInfoCreator {
     private static final String pi_from_client = "server";
-    private static final String pi_channel_id = "20020a";
-    private static final String pi_app_id = "b1020a";
+    private static final String pi_channel_id = "20019a";
+    private static final String pi_app_id = "b1019a";
     private static String pi_page = "0";
     private static String pi_size = "20";
-    public String none = "0000000000000000";
+    private String none = "0000000000000000";
     public String imei = none, androidid = none, imsi = none, mcc = "310", mnc = "260", la = "-1", ci = "-1";
     public String macAddress = "";
-    public String ovr = "", os_level = "", device = "T", svr = "4640014", net_type = "";
+    public String ovr = "", os_level = "", svr = "4640014", net_type = "";
     public String dpi = "";
 
     public HashMap makeDownloadListHash(){
@@ -117,6 +117,7 @@ public class PhoneInfoCreator {
         signHashMap.put("svr", hashMap.get("svr"));
         signHashMap.put("reportData", URLEncoder.encode(data));
         List<Map.Entry<String, String>> sortSign = this.sort(signHashMap);
+        String str = this.buildString(sortSign.iterator()) +  hashMap.get("client_id") + hashMap.get("pkg") + Config.APP_SECRET;
         return CreateMD5.getMd5(this.buildString(sortSign.iterator()) + hashMap.get("client_id") + hashMap.get("pkg") + Config.APP_SECRET).toLowerCase();
     }
 }

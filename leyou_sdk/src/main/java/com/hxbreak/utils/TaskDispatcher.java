@@ -27,17 +27,18 @@ import okhttp3.Response;
 
 public class TaskDispatcher {
     private OkHttpClient okHttpClient = null;
+    private PhoneInfoCreator phoneInfoCreator;
+
     public TaskDispatcher(){
         this.okHttpClient = new OkHttpClient();
+        phoneInfoCreator = new PhoneInfoCreator();
     }
-
     /**
      * 获取应用列表
      * @param OnListLoadFinished  回调事件
      */
     public void FetchList(final OnListLoadFinished OnListLoadFinished){
         HttpUrl.Builder httpUrlBuilder = HttpUrl.parse(Config.SERVERAPPLIST).newBuilder();
-        PhoneInfoCreator phoneInfoCreator = new PhoneInfoCreator();
         HashMap hashMap = phoneInfoCreator.makeDownloadListHash();
         List<Map.Entry<String, String>> map = phoneInfoCreator.sort(hashMap);
         String param = phoneInfoCreator.buildString(map.iterator()) + Config.APP_SECRET;
@@ -66,12 +67,11 @@ public class TaskDispatcher {
             }
         });
     }
-    public void DownloadReport(String packagename, final OnReportFinished onReportFinished){
+    public void DownloadReport(String packagename, String uuid, String ip, final OnReportFinished onReportFinished){
         Gson gson = new Gson();
         String reportData = gson.toJson(new pack(packagename)).toLowerCase();
         HttpUrl.Builder httpUrlBuilder = HttpUrl.parse(Config.SERVERREPORT).newBuilder();
-        PhoneInfoCreator phoneInfoCreator = new PhoneInfoCreator();
-        HashMap<String, String> hashMap = phoneInfoCreator.makeReportHash("231564654654", "192.168.7.23");
+        HashMap<String, String> hashMap = phoneInfoCreator.makeReportHash(uuid, ip);
         List<Map.Entry<String, String>> hashMaps = phoneInfoCreator.sort(hashMap);
         httpUrlBuilder = phoneInfoCreator.buildUrl(hashMaps.iterator(), httpUrlBuilder);
         String sign = phoneInfoCreator.createReportSign(hashMap, gson.toJson(new pack(packagename)).toLowerCase());
@@ -88,9 +88,10 @@ public class TaskDispatcher {
                 if(response.code() == 200){
                     String str = response.body().string();
                     Gson gson = new Gson();
-                    Result result = gson.fromJson(str, Result.class);
+                    Result.InnerResult result = gson.fromJson(str, Result.InnerResult.class);
                     if(result.result == 0){
-                        onReportFinished.onSuccess("");
+                        Result result1 = gson.fromJson(str, Result.class);
+                        onReportFinished.onSuccess(result1.content.extraData);
                     }else{
                         onReportFinished.onFailed(result.result);
                     }
@@ -100,6 +101,15 @@ public class TaskDispatcher {
             }
         });
     }
+
+    public PhoneInfoCreator getPhoneInfoCreator() {
+        return phoneInfoCreator;
+    }
+
+    public void setPhoneInfoCreator(PhoneInfoCreator phoneInfoCreator) {
+        this.phoneInfoCreator = phoneInfoCreator;
+    }
+
     private class pack{
         @SerializedName("package")
         public String Package;

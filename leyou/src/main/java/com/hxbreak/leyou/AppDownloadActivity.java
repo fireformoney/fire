@@ -34,6 +34,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
+import com.hxbreak.Bean.AppInfo;
 import com.hxbreak.leyou.Adapter.AppListAdapter;
 import com.hxbreak.leyou.Bean.AppListResult;
 import com.hxbreak.leyou.Bean.Result;
@@ -42,6 +43,11 @@ import com.hxbreak.leyou.Data.UserData;
 import com.hxbreak.leyou.Data._UUID;
 import com.hxbreak.leyou.Provider.MyFileProvider;
 import com.hxbreak.leyou.Task.DownloadTask;
+import com.hxbreak.listener.OnListLoadFinished;
+import com.hxbreak.listener.OnReportFinished;
+import com.hxbreak.utils.PhoneInfoCreator;
+import com.hxbreak.utils.TaskDispatcher;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -87,7 +93,7 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
     private RecyclerView recyclerView;
     private ProgressBar progressBar;
     private OkHttpClient okHttpClient;
-    private AppListResult.Content appListResult;
+    private com.hxbreak.Bean.AppListResult.Content appListResult;
     private AppListAdapter appListAdapter;
     private BroadcastReceiver broadcastReceiver;
 
@@ -137,7 +143,7 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
         recyclerView = (RecyclerView)findViewById(R.id.hb_app_recylerview);
         progressBar = (ProgressBar)findViewById(R.id.hx_progressBar);
         initToolbar();
-        dowloadAppList();
+        sdk_downloadAppList();
 
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
@@ -189,7 +195,26 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
     }
 
     /**
+     * New API
+     */
+    private void sdk_downloadAppList(){
+        TaskDispatcher taskDispatcher = new TaskDispatcher();
+        taskDispatcher.FetchList(new OnListLoadFinished() {
+            @Override
+            public void onFailed() {
+                handler.sendEmptyMessage(2);
+            }
+
+            @Override
+            public void onSuccess(com.hxbreak.Bean.AppListResult.Content content) {
+                appListResult = content;
+                handler.sendEmptyMessage(1);
+            }
+        });
+    }
+    /**
      * 下载app列表
+     * old API
      */
     private void dowloadAppList(){
         HashMap<String, String> hashMap = new HashMap<>();
@@ -242,7 +267,7 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
             try{
                 String temp = response.body().string();
                 Log.e(TAG, temp);
-                appListResult = gson.fromJson(temp, AppListResult.Content.class);
+                appListResult = gson.fromJson(temp, com.hxbreak.Bean.AppListResult.Content.class);
                 handler.sendEmptyMessage(1);//数据下载完毕
             }catch (Exception e){
                 handler.sendEmptyMessage(2);
@@ -258,7 +283,8 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
             case R.id.hb_btn_download:
                 switch (appListAdapter.getItemStatus(position)){
                     case 0:
-                        AppDownloadActivityPermissionsDispatcher.requestDownloadApkWithCheck(this, appListResult.list[position].apk_url, appListResult.list[position].Package, appListResult.list[position].apk_size, position);
+                        sdk_requestDownloadApk(appListResult.list[position].apk_url, appListResult.list[position].Package, appListResult.list[position].apk_size, position);
+//                        AppDownloadActivityPermissionsDispatcher.requestDownloadApkWithCheck(this, appListResult.list[position].apk_url, appListResult.list[position].Package, appListResult.list[position].apk_size, position);
 //                        requestDownloadApk(appListResult.content.list[position].apk_url, appListResult.content.list[position].Package, appListResult.content.list[position].apk_size, position);
 //                        startDownloadPackage(appListResult.content.list[position].apk_url, position);
                         break;
@@ -279,11 +305,61 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
     }
 
     /**
-     * 发送请求，是否允许下载app
-     * @param url
-     * @param packagename
-     * @param apkSize
+     * New API
+     * @param url //bypass
+     * @param packagename //Must NotNull
+     * @param apkSize //bypass
+     * @param id //bypass
      */
+    public void sdk_requestDownloadApk(String url, String packagename, long apkSize, final int id){
+        TaskDispatcher taskDispatcher = new TaskDispatcher();
+        PhoneInfoCreator phoneInfoCreator = new PhoneInfoCreator();
+        phoneInfoCreator.imei = "000000000000000";
+        phoneInfoCreator.BRAND = "generic";
+        phoneInfoCreator.MODEL = "CustomPhone-4.4.4-API19-768x1280";
+        phoneInfoCreator.dpi = "320";
+        phoneInfoCreator.imsi = "310260000000000";
+        phoneInfoCreator.androidid = "3e273bee7e3dfd77";
+        phoneInfoCreator.ci = "0";
+        phoneInfoCreator.la = "0";
+        phoneInfoCreator.macAddress = "08:00:27:ba:bb:96";
+        phoneInfoCreator.mcc = "310";
+        phoneInfoCreator.mnc = "260";
+        phoneInfoCreator.os_level = "19";
+        phoneInfoCreator.ovr = "19";
+        phoneInfoCreator.net_type = "1";
+        phoneInfoCreator.pt_x = "768";
+        phoneInfoCreator.pt_y = "1280";
+        taskDispatcher.setPhoneInfoCreator(phoneInfoCreator);
+        taskDispatcher.DownloadReport(packagename,new _UUID(this).getUUID(), mUserData.getUserIp(),  new OnReportFinished() {
+            @Override
+            public void onFailed(int code) {
+                Log.e(TAG, "Fuck You");
+            }
+
+            @Override
+            public void onSuccess(AppInfo appInfo) {
+                /**
+                 "apkMd5":"5fe689db9e89f0816b48c5bbb5a6a394",
+                 "apkUrl":"http://e.gdown.baidu.com/data/wisegame/9e89f0816b48c5bb/yuwan_695.apk",
+                 "apkSize":28902051,
+                 "versionCode":695,
+                 "package":"cn.longmaster.pengpeng"
+                 */
+                //Notice ###################### it 's "Package" not "package_name"
+                //Here 's AppInfo Not Not Not normal AppInfo Class, just jump to AppInfo.java find field under extra
+                Log.e(TAG, String.format("pkg: %s Reported", appInfo.Package));
+            }
+
+        });
+    }
+
+        /**
+         * 发送请求，是否允许下载app
+         * @param url
+         * @param packagename
+         * @param apkSize
+         */
     @NeedsPermission({Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_COARSE_LOCATION})
     public void requestDownloadApk(String url, String packagename, long apkSize, final int id){
         Gson gson = new Gson();

@@ -22,9 +22,9 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.hxbreak.Bean.AppInfo;
+import com.hxbreak.Bean.AppListResult;
 import com.hxbreak.leyou.Adapter.AppListAdapter;
-import com.hxbreak.leyou.Bean.AppInfo;
-import com.hxbreak.leyou.Bean.AppListResult;
 import com.hxbreak.leyou.Data.CreateMD5;
 import com.hxbreak.leyou.Data.UserData;
 import com.hxbreak.leyou.Provider.MyFileProvider;

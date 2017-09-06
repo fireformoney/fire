@@ -18,4 +18,9 @@ public class AppInfo {
     public String apk_md5;
     public String apk_url;
     public String icon_url;
+    //extra
+    public String apkMd5;
+    public String apkUrl;
+    public long apkSize;
+    public long versionCode;
 }

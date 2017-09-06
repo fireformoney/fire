@@ -18,7 +18,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
-import com.hxbreak.leyou.Bean.AppInfo;
+import com.hxbreak.Bean.AppInfo;
 import com.hxbreak.leyou.R;
 
 import java.io.File;
