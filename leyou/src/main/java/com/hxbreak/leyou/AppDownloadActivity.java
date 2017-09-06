@@ -334,7 +334,7 @@ public class AppDownloadActivity extends BaseActivity implements Callback, AppLi
         taskDispatcher.DownloadReport(packagename,new _UUID(this).getUUID(), mUserData.getUserIp(),  new OnReportFinished() {
             @Override
             public void onFailed(int code) {
-                Log.e(TAG, "Fuck You");
+                Log.e(TAG, "Report Failed" + String.valueOf(code));
             }
 
             @Override
