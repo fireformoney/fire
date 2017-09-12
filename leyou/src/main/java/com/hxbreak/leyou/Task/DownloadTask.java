@@ -1,7 +1,6 @@
 package com.hxbreak.leyou.Task;
 
 import android.content.Context;
-import android.os.SystemClock;
 import android.util.Log;
 
 import java.io.BufferedInputStream;
@@ -9,11 +8,11 @@ import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import okhttp2hx.Call;
+import okhttp2hx.Callback;
+import okhttp2hx.OkHttpClient;
+import okhttp2hx.Request;
+import okhttp2hx.Response;
 
 /**
  * Created by HxBreak on 2017/7/19.

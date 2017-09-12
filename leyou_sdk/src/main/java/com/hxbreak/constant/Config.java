@@ -1,6 +1,6 @@
 package com.hxbreak.constant;
 
-import okhttp3.MediaType;
+import okhttp2hx.MediaType;
 
 public class Config{
     public static final String SERVERAPPLIST = "http://112.126.66.190/apps.php";

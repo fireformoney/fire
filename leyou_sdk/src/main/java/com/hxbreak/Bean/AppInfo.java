@@ -1,6 +1,6 @@
 package com.hxbreak.Bean;
 
-import com.google.gson.annotations.SerializedName;
+import com.google2hx.gson.annotations.SerializedName;
 
 /**
  * Created by HxBreak on 2017/7/17.

@@ -1,25 +1,27 @@
 package com.hxbreak.utils;
 
-import com.google.gson.Gson;
-import com.google.gson.annotations.SerializedName;
+import com.google2hx.gson.Gson;
+import com.google2hx.gson.annotations.SerializedName;
 import com.hxbreak.Bean.AppListResult;
 import com.hxbreak.Bean.Result;
 import com.hxbreak.constant.Config;
 import com.hxbreak.listener.OnListLoadFinished;
 import com.hxbreak.listener.OnReportFinished;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+import okhttp2hx.Call;
+import okhttp2hx.Callback;
+import okhttp2hx.HttpUrl;
+import okhttp2hx.OkHttpClient;
+import okhttp2hx.Request;
+import okhttp2hx.RequestBody;
+import okhttp2hx.Response;
 
 /**
  * Created by HxBreak on 2017/9/5.
@@ -136,5 +138,28 @@ public class TaskDispatcher {
             this.reportData = new inner(aPackage);
             this.sign = sign;
         }
+    }
+    public void DownloadFile(String url,final BufferedOutputStream bos){
+        Request request = new Request.Builder().url(url).build();
+        okHttpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if(response.code() == 200){
+                    BufferedInputStream bis = new BufferedInputStream(response.body().byteStream());
+                    byte[] bt = new byte[51200];
+                    int size = 0;
+                    while(-1 != (size = bis.read(bt, 0, bt.length))){
+                        bos.write(bt, 0, size);
+                    }
+                    bis.close();
+                }
+                bos.flush();
+                bos.close();
+            }
+        });
     }
 }
